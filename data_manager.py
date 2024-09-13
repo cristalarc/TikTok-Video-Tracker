@@ -17,9 +17,15 @@ class DataManager:
             CREATE TABLE IF NOT EXISTS videos (
                 video_id TEXT PRIMARY KEY,
                 video_info TEXT,
-                date TEXT,
+                time TEXT,
                 creator_name TEXT,
-                products TEXT,
+                products TEXT
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS daily_performance (
+                video_id TEXT,
+                performance_date TEXT,
                 vv INTEGER,
                 likes INTEGER,
                 comments INTEGER,
@@ -37,7 +43,9 @@ class DataManager:
                 ctr REAL,
                 v_to_l_rate REAL,
                 video_finish_rate REAL,
-                ctor REAL
+                ctor REAL,
+                PRIMARY KEY (video_id, performance_date),
+                FOREIGN KEY (video_id) REFERENCES videos(video_id)
             )
         ''')
         self.conn.commit()
@@ -61,13 +69,33 @@ class DataManager:
 
     def read_excel(self, file_path):
         try:
-            df = pd.read_excel(file_path, parse_dates=['Time'])
+            # Read the date range from cell A1
+            date_range = pd.read_excel(file_path, header=None, nrows=1).iloc[0, 0]
+            performance_date = self.extract_date_from_range(date_range)
+
+            # Read the actual data starting from row 3
+            df = pd.read_excel(file_path, header=2)
+            df['performance_date'] = performance_date
             logging.info(f"Successfully read Excel file: {file_path}")
             logging.debug(f"Columns in the Excel file: {df.columns.tolist()}")
             return df
+        except ValueError as ve:
+            logging.error(f"Error processing Excel file: {str(ve)}")
+            raise
         except Exception as e:
             logging.error(f"Error reading Excel file: {str(e)}")
             raise
+
+    def extract_date_from_range(self, date_range):
+        import re
+        match = re.search(r'\[Date Range\]: (\d{4}-\d{2}-\d{2}) ~ (\d{4}-\d{2}-\d{2})', date_range)
+        if match:
+            start_date, end_date = match.groups()
+            if start_date != end_date:
+                raise ValueError("Data spans more than one day. Please provide data for a single day only.")
+            return start_date
+        else:
+            raise ValueError("Could not extract date from range string")
 
     def filter_videos(self, df):
         try:
@@ -85,23 +113,32 @@ class DataManager:
         cursor = self.conn.cursor()
         try:
             for _, row in df.iterrows():
-                # Extract date from the timestamp
-                full_date = row.get('Time')
-                date = full_date.strftime("%Y/%m/%d") if pd.notnull(full_date) else None
-
+                # Insert or update video information
                 cursor.execute('''
                     INSERT OR REPLACE INTO videos
-                    (video_id, video_info, date, creator_name, products, vv, likes, comments, shares, new_followers,
+                    (video_id, video_info, time, creator_name, products)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    row.get('Video ID'), row.get('Video Info'), row.get('Time'),
+                    row.get('Creator name'), row.get('Products')
+                ))
+
+                # Insert daily performance data
+                cursor.execute('''
+                    INSERT OR REPLACE INTO daily_performance
+                    (video_id, performance_date, vv, likes, comments, shares, new_followers,
                     v_to_l_clicks, product_impressions, product_clicks, buyers, orders,
                     unit_sales, video_revenue, gpm, shoppable_video_attributed_gmv,
                     ctr, v_to_l_rate, video_finish_rate, ctor)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
-                    row.get('Video ID'), row.get('Video Info'), date, row.get('Creator name'), row.get('Products'),
-                    row.get('VV'), row.get('Likes'), row.get('Comments'), row.get('Shares'), row.get('New followers'),
-                    row.get('V-to-L clicks'), row.get('Product Impressions'), row.get('Product Clicks'),
-                    row.get('Buyers'), row.get('Orders'), row.get('Unit Sales'), row.get('Video Revenue ($)'),
-                    row.get('GPM ($)'), row.get('Shoppable video attributed GMV ($)'), row.get('CTR'),
+                    row.get('Video ID'), row.get('performance_date'),
+                    row.get('VV'), row.get('Likes'), row.get('Comments'), row.get('Shares'),
+                    row.get('New followers'), row.get('V-to-L clicks'),
+                    row.get('Product Impressions'), row.get('Product Clicks'),
+                    row.get('Buyers'), row.get('Orders'), row.get('Unit Sales'),
+                    row.get('Video Revenue ($)'), row.get('GPM ($)'),
+                    row.get('Shoppable video attributed GMV ($)'), row.get('CTR'),
                     row.get('V-to-L rate'), row.get('Video Finish Rate'), row.get('CTOR')
                 ))
             self.conn.commit()
@@ -115,10 +152,13 @@ class DataManager:
         cursor = self.conn.cursor()
         try:
             cursor.execute('''
-                SELECT video_id, video_info, date, creator_name, products, vv
-                FROM videos
-                WHERE video_info LIKE ? OR video_id LIKE ? OR creator_name LIKE ? OR products LIKE ?
-                ORDER BY vv DESC
+                SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
+                       MAX(dp.vv) as max_vv
+                FROM videos v
+                LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
+                WHERE v.video_info LIKE ? OR v.video_id LIKE ? OR v.creator_name LIKE ? OR v.products LIKE ?
+                GROUP BY v.video_id
+                ORDER BY max_vv DESC
             ''', (f'%{query}%', f'%{query}%', f'%{query}%', f'%{query}%'))
             return cursor.fetchall()
         except Exception as e:
@@ -128,7 +168,14 @@ class DataManager:
     def get_video_details(self, video_id):
         cursor = self.conn.cursor()
         try:
-            cursor.execute('SELECT * FROM videos WHERE video_id = ?', (video_id,))
+            cursor.execute('''
+                SELECT v.*, dp.*
+                FROM videos v
+                LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
+                WHERE v.video_id = ?
+                ORDER BY dp.performance_date DESC
+                LIMIT 1
+            ''', (video_id,))
             return cursor.fetchone()
         except Exception as e:
             logging.error(f"Error getting video details: {str(e)}")
@@ -138,10 +185,10 @@ class DataManager:
         cursor = self.conn.cursor()
         try:
             cursor.execute(f'''
-                SELECT date, {metric}
-                FROM videos
+                SELECT performance_date, {metric}
+                FROM daily_performance
                 WHERE video_id = ?
-                ORDER BY date
+                ORDER BY performance_date
             ''', (video_id,))
             return cursor.fetchall()
         except Exception as e:

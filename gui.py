@@ -75,6 +75,9 @@ class TikTokTrackerGUI:
                 filtered_df = self.data_manager.filter_videos(df)
                 self.data_manager.insert_or_update_records(filtered_df)
                 messagebox.showinfo("Success", "File uploaded and processed successfully!")
+        except ValueError as ve:
+            messagebox.showerror("Error", str(ve))
+            logging.error(f"Error in upload_file: {str(ve)}")
         except Exception as e:
             error_message = f"An error occurred while processing the file: {str(e)}\n\nPlease check the log for more details."
             messagebox.showerror("Error", error_message)
@@ -98,14 +101,15 @@ class TikTokTrackerGUI:
             self.details_text.delete(1.0, tk.END)
             self.details_text.insert(tk.END, f"Video ID: {details[0]}\n")
             self.details_text.insert(tk.END, f"Video Info: {details[1]}\n")
-            self.details_text.insert(tk.END, f"Date: {details[2]}\n")
+            self.details_text.insert(tk.END, f"Creation Date: {details[2]}\n")
             self.details_text.insert(tk.END, f"Creator: {details[3]}\n")
             self.details_text.insert(tk.END, f"Products: {details[4]}\n")
-            self.details_text.insert(tk.END, f"Views: {details[5]}\n")
-            self.details_text.insert(tk.END, f"Likes: {details[6]}\n")
-            self.details_text.insert(tk.END, f"Comments: {details[7]}\n")
-            self.details_text.insert(tk.END, f"Shares: {details[8]}\n")
-            self.details_text.insert(tk.END, f"New Followers: {details[9]}\n")
+            self.details_text.insert(tk.END, f"Latest Performance Date: {details[6]}\n")
+            self.details_text.insert(tk.END, f"Views: {details[7]}\n")
+            self.details_text.insert(tk.END, f"Likes: {details[8]}\n")
+            self.details_text.insert(tk.END, f"Comments: {details[9]}\n")
+            self.details_text.insert(tk.END, f"Shares: {details[10]}\n")
+            self.details_text.insert(tk.END, f"New Followers: {details[11]}\n")
             # Add more details as needed
 
     def plot_metric(self):

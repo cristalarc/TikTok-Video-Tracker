@@ -1,3 +1,5 @@
-There's an error in the logic.
-The date of the data is being applied to the date value of the video. The date value is just a reference of when the video was created.
-Need to make sure that the data for that data point is being correctly assigned to the correct date.
+- Teach how to handle when you are trying to upload data when it already has data for that day.
+- Need to make sure that it continues to add data to a video that is already in the database even if the video view is lower than 4000 views.
+- When the data points are plotted, I want to be able to hover over a data point and get more information about that data point.
+- The Video Details section is displaying the Views, Likes, Comments, Shares, New Followers data as for the last uploaded record. It should display a cumulative total of all the data.
+- I want the UI to be adaptive of my PC resolution?
