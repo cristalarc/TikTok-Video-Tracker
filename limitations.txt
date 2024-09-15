@@ -1,0 +1,1 @@
+- Backup folder will be created in the same folder as the script.

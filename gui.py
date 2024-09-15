@@ -1,8 +1,9 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, filedialog, messagebox, simpledialog
 import logging
 from data_manager import DataManager
 from plotter import Plotter
+from datetime import datetime
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -19,7 +20,11 @@ class TikTokTrackerGUI:
     def create_widgets(self):
         # File upload button
         self.upload_button = ttk.Button(self.master, text="Upload Excel File", command=self.upload_file)
-        self.upload_button.pack(pady=10)
+        self.upload_button.pack(pady=10, side=tk.LEFT, padx=5)
+
+        # Clear video performance button
+        self.clear_data_button = ttk.Button(self.master, text="Clear Video Performance", command=self.clear_video_performance)
+        self.clear_data_button.pack(pady=10, side=tk.LEFT, padx=5)
 
         # Search bar
         self.search_var = tk.StringVar()
@@ -74,7 +79,7 @@ class TikTokTrackerGUI:
                 df = self.data_manager.read_excel(file_path)
                 filtered_df = self.data_manager.filter_videos(df)
                 self.data_manager.insert_or_update_records(filtered_df)
-                messagebox.showinfo("Success", "File uploaded and processed successfully!")
+                messagebox.showinfo("Success", "File uploaded and processed successfully! Database backup created.")
         except ValueError as ve:
             messagebox.showerror("Error", str(ve))
             logging.error(f"Error in upload_file: {str(ve)}")
@@ -127,3 +132,27 @@ class TikTokTrackerGUI:
         data = self.data_manager.get_time_series_data(video_id, metric)
         self.plotter.plot_metric(data, metric)
         self.plotter.embed_plot(self.master)
+
+    def clear_video_performance(self):
+        # Create a simple dialog to get the date
+        date = simpledialog.askstring("Clear Video Performance", "Enter date to clear (YYYY-MM-DD):")
+        if not date:
+            return
+
+        try:
+            # Validate date format
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
+            return
+
+        try:
+            result = self.data_manager.clear_data_for_date(date)
+            if result:
+                messagebox.showinfo("Success", f"Data for {date} has been cleared. A backup was created before clearing.")
+            else:
+                messagebox.showinfo("Info", f"No data found for {date}.")
+        except Exception as e:
+            error_message = f"An error occurred while clearing data: {str(e)}\n\nPlease check the log for more details."
+            messagebox.showerror("Error", error_message)
+            logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)

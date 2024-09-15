@@ -1,5 +1,14 @@
+- Finish add a clear data for certain day function + button.
+
 - Teach how to handle when you are trying to upload data when it already has data for that day.
+
 - Need to make sure that it continues to add data to a video that is already in the database even if the video view is lower than 4000 views.
-- When the data points are plotted, I want to be able to hover over a data point and get more information about that data point.
 - The Video Details section is displaying the Views, Likes, Comments, Shares, New Followers data as for the last uploaded record. It should display a cumulative total of all the data.
 - I want the UI to be adaptive of my PC resolution?
+
+
+Ancilliary
+- Improve the date selection process for the database clearing function.
+- Add a restore dabatase function and button.
+- Add functionality for week long data, like deleting data for a full week.
+- Add comments to the code to explain what is happening.

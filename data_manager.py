@@ -2,6 +2,8 @@ import pandas as pd
 import sqlite3
 import logging
 from datetime import datetime
+import os
+import shutil
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -10,6 +12,33 @@ class DataManager:
         self.conn = sqlite3.connect(db_path)
         self.create_tables()
         self.migrate_database()
+
+    def ensure_connection(self):
+        if self.conn is None or not self.conn:
+            self.conn = sqlite3.connect('tiktok_tracker.db')
+
+    def backup_database(self):
+        # Create backup directory if it doesn't exist
+        backup_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db_backup')
+        os.makedirs(backup_dir, exist_ok=True)
+
+        # Generate backup filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup_filename = f"tiktok_tracker_backup_{timestamp}.db"
+        backup_path = os.path.join(backup_dir, backup_filename)
+
+        try:
+            # Close the current connection
+            if self.conn:
+                self.conn.close()
+
+            # Copy the database file
+            shutil.copy2('tiktok_tracker.db', backup_path)
+
+            logging.info(f"Database backed up to {backup_path}")
+        finally:
+            # Always ensure the connection is reopened
+            self.ensure_connection()
 
     def create_tables(self):
         cursor = self.conn.cursor()
@@ -143,6 +172,8 @@ class DataManager:
                 ))
             self.conn.commit()
             logging.info(f"Successfully inserted or updated {len(df)} records")
+            self.backup_database()
+            logging.info("Data backed up successfully")
         except Exception as e:
             logging.error(f"Error inserting or updating records: {str(e)}")
             self.conn.rollback()
@@ -194,4 +225,44 @@ class DataManager:
         except Exception as e:
             logging.error(f"Error getting time series data: {str(e)}")
             raise
+
+    def clear_data_for_date(self, date):
+        self.ensure_connection()
+        cursor = self.conn.cursor()
+        try:
+            # Check if there's data for the given date
+            cursor.execute("SELECT COUNT(*) FROM daily_performance WHERE performance_date = ?", (date,))
+            count = cursor.fetchone()[0]
+            
+            if count == 0:
+                return False  # No data for this date
+            
+            # Perform backup before clearing data
+            self.backup_database()
+            
+            # Ensure connection is still open after backup
+            self.ensure_connection()
+            
+            # Clear data for the given date
+            cursor.execute("DELETE FROM daily_performance WHERE performance_date = ?", (date,))
+            self.conn.commit()
+            logging.info(f"Cleared data for date: {date}")
+            return True
+        except sqlite3.Error as e:
+            logging.error(f"SQLite error in clear_data_for_date: {str(e)}")
+            if self.conn:
+                self.conn.rollback()
+            raise
+        except Exception as e:
+            logging.error(f"Unexpected error in clear_data_for_date: {str(e)}")
+            if self.conn:
+                self.conn.rollback()
+            raise
+        finally:
+            if cursor:
+                cursor.close()
+
+    def ensure_connection(self):
+        if self.conn is None or not self.conn:
+            self.conn = sqlite3.connect('tiktok_tracker.db')
 
