@@ -13,10 +13,6 @@ class DataManager:
         self.create_tables()
         self.migrate_database()
 
-    def ensure_connection(self):
-        if self.conn is None or not self.conn:
-            self.conn = sqlite3.connect('tiktok_tracker.db')
-
     def backup_database(self):
         # Create backup directory if it doesn't exist
         backup_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db_backup')
@@ -28,17 +24,15 @@ class DataManager:
         backup_path = os.path.join(backup_dir, backup_filename)
 
         try:
-            # Close the current connection
-            if self.conn:
-                self.conn.close()
-
-            # Copy the database file
-            shutil.copy2('tiktok_tracker.db', backup_path)
-
+            # Create a new connection to the backup database
+            backup_conn = sqlite3.connect(backup_path)
+            with backup_conn:
+                self.conn.backup(backup_conn)
+            backup_conn.close()
             logging.info(f"Database backed up to {backup_path}")
-        finally:
-            # Always ensure the connection is reopened
-            self.ensure_connection()
+        except Exception as e:
+            logging.error(f"Error backing up database: {str(e)}")
+            raise
 
     def create_tables(self):
         cursor = self.conn.cursor()
@@ -228,8 +222,9 @@ class DataManager:
 
     def clear_data_for_date(self, date):
         self.ensure_connection()
-        cursor = self.conn.cursor()
+        cursor = None
         try:
+            cursor = self.conn.cursor()
             # Check if there's data for the given date
             cursor.execute("SELECT COUNT(*) FROM daily_performance WHERE performance_date = ?", (date,))
             count = cursor.fetchone()[0]
@@ -239,9 +234,6 @@ class DataManager:
             
             # Perform backup before clearing data
             self.backup_database()
-            
-            # Ensure connection is still open after backup
-            self.ensure_connection()
             
             # Clear data for the given date
             cursor.execute("DELETE FROM daily_performance WHERE performance_date = ?", (date,))
@@ -261,8 +253,13 @@ class DataManager:
         finally:
             if cursor:
                 cursor.close()
+            self.ensure_connection()
 
     def ensure_connection(self):
-        if self.conn is None or not self.conn:
+        try:
+            # Try executing a simple query to check if the connection is open
+            self.conn.execute('SELECT 1')
+        except (AttributeError, sqlite3.ProgrammingError):
+            # If self.conn is None or closed, create a new connection
             self.conn = sqlite3.connect('tiktok_tracker.db')
 
