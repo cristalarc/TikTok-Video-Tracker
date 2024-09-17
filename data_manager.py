@@ -263,3 +263,42 @@ class DataManager:
             # If self.conn is None or closed, create a new connection
             self.conn = sqlite3.connect('tiktok_tracker.db')
 
+    def restore_database(self, backup_path):
+        try:
+            # Close the current connection
+            self.conn.close()
+            
+            # Replace the current database with the backup
+            shutil.copy2(backup_path, 'tiktok_tracker.db')
+            
+            # Reopen the connection
+            self.conn = sqlite3.connect('tiktok_tracker.db')
+            
+            logging.info(f"Database restored from {backup_path}")
+            return True
+        except Exception as e:
+            logging.error(f"Error restoring database: {str(e)}")
+            return False
+
+    def check_existing_data(self, date):
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM daily_performance WHERE performance_date = ?", (date,))
+        count = cursor.fetchone()[0]
+        return count > 0
+
+    def replace_data_for_date(self, df, date):
+        cursor = self.conn.cursor()
+        try:
+            # Delete existing data for the given date
+            cursor.execute("DELETE FROM daily_performance WHERE performance_date = ?", (date,))
+            
+            # Insert new data
+            self.insert_or_update_records(df)
+            
+            self.conn.commit()
+            logging.info(f"Successfully replaced data for {date}")
+        except Exception as e:
+            logging.error(f"Error replacing data for {date}: {str(e)}")
+            self.conn.rollback()
+            raise
+

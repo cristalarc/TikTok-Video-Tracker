@@ -4,6 +4,7 @@ import logging
 from data_manager import DataManager
 from plotter import Plotter
 from datetime import datetime
+import os
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -72,14 +73,31 @@ class TikTokTrackerGUI:
         self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.plot_metric)
         self.plot_button.pack(pady=5)
 
+        # Add this line after the Clear Video Performance button
+        self.restore_button = ttk.Button(self.master, text="Restore Database", command=self.restore_database)
+        self.restore_button.pack(pady=10, side=tk.LEFT, padx=5)
+
     def upload_file(self):
         try:
             file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
             if file_path:
                 df = self.data_manager.read_excel(file_path)
                 filtered_df = self.data_manager.filter_videos(df)
-                self.data_manager.insert_or_update_records(filtered_df)
-                messagebox.showinfo("Success", "File uploaded and processed successfully! Database backup created.")
+                
+                # Check if data already exists for this date
+                date = filtered_df['performance_date'].iloc[0]
+                if self.data_manager.check_existing_data(date):
+                    response = messagebox.askyesno("Data Already Exists", 
+                        f"Data for {date} already exists in the database. Do you want to replace it?")
+                    if response:
+                        self.data_manager.replace_data_for_date(filtered_df, date)
+                        messagebox.showinfo("Success", f"Data for {date} has been replaced successfully!")
+                    else:
+                        messagebox.showinfo("Info", "Upload cancelled.")
+                        return
+                else:
+                    self.data_manager.insert_or_update_records(filtered_df)
+                    messagebox.showinfo("Success", "File uploaded and processed successfully! Database backup created.")
         except ValueError as ve:
             messagebox.showerror("Error", str(ve))
             logging.error(f"Error in upload_file: {str(ve)}")
@@ -156,3 +174,23 @@ class TikTokTrackerGUI:
             error_message = f"An error occurred while clearing data: {str(e)}\n\nPlease check the log for more details."
             messagebox.showerror("Error", error_message)
             logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)
+
+    def restore_database(self):
+        # Get the directory of the current script
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Set the initial directory to the db_backup folder
+        initial_dir = os.path.join(current_dir, 'db_backup')
+        
+        # Open file dialog
+        backup_path = filedialog.askopenfilename(
+            initialdir=initial_dir,
+            title="Select Database Backup",
+            filetypes=[("Database files", "*.db")]
+        )
+        
+        if backup_path:
+            result = self.data_manager.restore_database(backup_path)
+            if result:
+                messagebox.showinfo("Success", "Database restored successfully.")
+            else:
+                messagebox.showerror("Error", "Failed to restore database. Check the log for details.")
