@@ -17,6 +17,7 @@ class TikTokTrackerGUI:
         self.plotter = Plotter()
 
         self.create_widgets()
+        self.load_all_videos()
 
     def create_widgets(self):
         # File upload button
@@ -27,6 +28,10 @@ class TikTokTrackerGUI:
         self.clear_data_button = ttk.Button(self.master, text="Clear Video Performance", command=self.clear_video_performance)
         self.clear_data_button.pack(pady=10, side=tk.LEFT, padx=5)
 
+        # Restore Database button
+        self.restore_button = ttk.Button(self.master, text="Restore Database", command=self.restore_database)
+        self.restore_button.pack(pady=10, side=tk.LEFT, padx=5)
+
         # Search bar
         self.search_var = tk.StringVar()
         self.search_entry = ttk.Entry(self.master, textvariable=self.search_var, width=50)
@@ -34,22 +39,21 @@ class TikTokTrackerGUI:
         self.search_button = ttk.Button(self.master, text="Search", command=self.search_videos)
         self.search_button.pack(pady=5)
 
+        # Last Performance Date label
+        self.last_performance_date = tk.StringVar()
+        self.last_performance_date_label = ttk.Label(self.master, textvariable=self.last_performance_date)
+        self.last_performance_date_label.pack(anchor='ne', padx=10, pady=5)
+
         # Search results
-        self.results_frame = ttk.Frame(self.master)
-        self.results_frame.pack(pady=10, fill=tk.BOTH, expand=True)
-        self.results_tree = ttk.Treeview(self.results_frame, columns=("Video ID", "Video Info", "Date", "Creator", "Products", "Views"), show="headings")
-        self.results_tree.heading("Video ID", text="Video ID")
-        self.results_tree.heading("Video Info", text="Video Info")
-        self.results_tree.heading("Date", text="Date")
-        self.results_tree.heading("Creator", text="Creator")
-        self.results_tree.heading("Products", text="Products")
-        self.results_tree.heading("Views", text="Views")
-        self.results_tree.column("Video ID", width=100)
-        self.results_tree.column("Video Info", width=200)
-        self.results_tree.column("Date", width=100)
-        self.results_tree.column("Creator", width=150)
-        self.results_tree.column("Products", width=200)
-        self.results_tree.column("Views", width=100)
+        self.results_frame = ttk.LabelFrame(self.master, text="Video Database Records")
+        self.results_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        columns = ("Video ID", "Video Info", "Date", "Creator", "Products", "Views", "Shares", "Video Revenue ($)")
+        self.results_tree = ttk.Treeview(self.results_frame, columns=columns, show="headings")
+
+        for col in columns:
+            self.results_tree.heading(col, text=col, command=lambda _col=col: self.treeview_sort_column(self.results_tree, _col, False))
+            self.results_tree.column(col, width=100)
+
         self.results_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         self.results_scrollbar = ttk.Scrollbar(self.results_frame, orient=tk.VERTICAL, command=self.results_tree.yview)
         self.results_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -73,9 +77,9 @@ class TikTokTrackerGUI:
         self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.plot_metric)
         self.plot_button.pack(pady=5)
 
-        # Add this line after the Clear Video Performance button
-        self.restore_button = ttk.Button(self.master, text="Restore Database", command=self.restore_database)
-        self.restore_button.pack(pady=10, side=tk.LEFT, padx=5)
+        # Initialize the last performance date
+        latest_date = self.data_manager.get_latest_performance_date()
+        self.last_performance_date.set(f"Last Performance Date: {latest_date}")
 
     def upload_file(self):
         try:
@@ -94,10 +98,12 @@ class TikTokTrackerGUI:
                         messagebox.showinfo("Success", f"Data for {date} has been replaced successfully!")
                     else:
                         messagebox.showinfo("Info", "Upload cancelled.")
+                        self.last_performance_date.set(f"Last Performance Date: {date}") ## Is this correct?
                         return
                 else:
                     self.data_manager.insert_or_update_records(filtered_df)
                     messagebox.showinfo("Success", "File uploaded and processed successfully! Database backup created.")
+                    self.last_performance_date.set(f"Last Performance Date: {date}")
         except ValueError as ve:
             messagebox.showerror("Error", str(ve))
             logging.error(f"Error in upload_file: {str(ve)}")
@@ -127,12 +133,13 @@ class TikTokTrackerGUI:
             self.details_text.insert(tk.END, f"Creation Date: {details[2]}\n")
             self.details_text.insert(tk.END, f"Creator: {details[3]}\n")
             self.details_text.insert(tk.END, f"Products: {details[4]}\n")
-            self.details_text.insert(tk.END, f"Latest Performance Date: {details[6]}\n")
-            self.details_text.insert(tk.END, f"Views: {details[7]}\n")
-            self.details_text.insert(tk.END, f"Likes: {details[8]}\n")
-            self.details_text.insert(tk.END, f"Comments: {details[9]}\n")
-            self.details_text.insert(tk.END, f"Shares: {details[10]}\n")
-            self.details_text.insert(tk.END, f"New Followers: {details[11]}\n")
+            self.details_text.insert(tk.END, f"Latest Performance Date: {details[5]}\n")
+            self.details_text.insert(tk.END, f"Views: {details[6]}\n")
+            self.details_text.insert(tk.END, f"Likes: {details[7]}\n")
+            self.details_text.insert(tk.END, f"Comments: {details[8]}\n")
+            self.details_text.insert(tk.END, f"Shares: {details[9]}\n")
+            self.details_text.insert(tk.END, f"New Followers: {details[10]}\n")
+            self.details_text.insert(tk.END, f"Video Revenue ($): {details[11]}\n")
             # Add more details as needed
 
     def plot_metric(self):
@@ -192,5 +199,20 @@ class TikTokTrackerGUI:
             result = self.data_manager.restore_database(backup_path)
             if result:
                 messagebox.showinfo("Success", "Database restored successfully.")
+                latest_date = self.data_manager.get_latest_performance_date()
+                self.last_performance_date.set(f"Last Performance Date: {latest_date}")
             else:
                 messagebox.showerror("Error", "Failed to restore database. Check the log for details.")
+
+    def load_all_videos(self):
+        self.results_tree.delete(*self.results_tree.get_children())
+        videos = self.data_manager.get_all_videos()
+        for video in videos:
+            self.results_tree.insert("", "end", values=video)
+
+    def treeview_sort_column(self, tv, col, reverse):
+        l = [(tv.set(k, col), k) for k in tv.get_children('')]
+        l.sort(reverse=reverse)
+        for index, (val, k) in enumerate(l):
+            tv.move(k, '', index)
+        tv.heading(col, command=lambda: self.treeview_sort_column(tv, col, not reverse))

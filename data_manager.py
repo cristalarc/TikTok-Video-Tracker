@@ -178,7 +178,8 @@ class DataManager:
         try:
             cursor.execute('''
                 SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
-                       MAX(dp.vv) as max_vv
+                       MAX(dp.vv) as max_vv, MAX(dp.shares) as max_shares, 
+                       MAX(dp.video_revenue) as max_video_revenue
                 FROM videos v
                 LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
                 WHERE v.video_info LIKE ? OR v.video_id LIKE ? OR v.creator_name LIKE ? OR v.products LIKE ?
@@ -194,7 +195,9 @@ class DataManager:
         cursor = self.conn.cursor()
         try:
             cursor.execute('''
-                SELECT v.*, dp.*
+                SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
+                       dp.performance_date, dp.vv, dp.likes, dp.comments, dp.shares, 
+                       dp.new_followers, dp.video_revenue
                 FROM videos v
                 LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
                 WHERE v.video_id = ?
@@ -301,4 +304,29 @@ class DataManager:
             logging.error(f"Error replacing data for {date}: {str(e)}")
             self.conn.rollback()
             raise
+
+    def get_all_videos(self):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute('''
+                SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
+                       dp.vv, dp.shares, dp.video_revenue
+                FROM videos v
+                LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
+                ORDER BY v.time DESC
+            ''')
+            return cursor.fetchall()
+        except Exception as e:
+            logging.error(f"Error getting all videos: {str(e)}")
+            raise
+    
+    def get_latest_performance_date(self):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute("SELECT MAX(performance_date) FROM daily_performance")
+            latest_date = cursor.fetchone()[0]
+            return latest_date if latest_date else "N/A"
+        except Exception as e:
+            logging.error(f"Error getting latest performance date: {str(e)}")
+            return "N/A"
 

@@ -1,10 +1,17 @@
-- Add a function that detects when videos are growing in views and send a notification to the user.
-- Add a way to scroll through the videos in the Video Details section.
+- Add a way to scroll through the videos in the Video Details section, and also sort by clicking on the column headers.
+- Add right click context menu to the videos in the Video Records section.
+- Add link to video in the Video Details section.
 - Need to make sure that it continues to add data to a video that is already in the database even if the video view is lower than 4000 views.
+- Add a function that detects when videos are growing in views and send a notification to the user.
 - The Video Details section is displaying the Views, Likes, Comments, Shares, New Followers data as for the last uploaded record. It should display a cumulative total of all the data.
 - I want the UI to be adaptive of my PC resolution?
 - Add better plotting capabilities
+- Allow me to increase or decrease the area of Video Database Records section, Video Details or Plotting section.
 
+Bugs:
+- VV, Shares, Video Revenue sorting not working properly.
+- Everytime the plot metric button is clicked, clear the active widgets that display adiditonal info about the metrics on the dots.
+- Not all metrics are working on plotting.
 
 Ancilliary
 - Improve the date selection process for the database clearing function.
