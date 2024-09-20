@@ -1,0 +1,6 @@
+[2024-09-20] Video Ingestion Logic Update
+- Modified the video ingestion logic to continue tracking videos that have ever reached 4000 VV.
+- Updated the `filter_videos` method in the `DataManager` class to include videos already in the database, regardless of their current VV count.
+- Added a new `get_existing_video_ids` method to fetch all video IDs from the database.
+- Updated the `insert_or_update_records` method to ensure it updates existing records and adds new ones as needed.
+- This change ensures that once a video is ingested (reaches 4000 VV), it continues to be tracked in subsequent uploads, even if its VV drops below 4000.

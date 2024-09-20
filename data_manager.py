@@ -121,49 +121,76 @@ class DataManager:
             raise ValueError("Could not extract date from range string")
 
     def filter_videos(self, df):
+        logging.debug(f"Data Types:\n{df.dtypes}") # Remove this later
+        logging.debug(f"Specific Video ID in DataFrame: {df[df['Video ID'] == '7309583706706971946']}") # Remove this later
+        # Ensure 'Video ID's in df are strings and stripped of whitespace
+
+        df['Video ID'] = df['Video ID'].astype(str).str.strip()
+
+        # Get all existing video IDs from the database as strings and strip whitespace
+        existing_video_ids = [str(vid).strip() for vid in self.get_existing_video_ids()]
+
+        # Filter videos based on VV threshold or if they already exist in the database
+        filtered_df = df[
+            (df['VV'] >= 4000) | (df['Video ID'].isin(existing_video_ids))
+        ]
+
+        # Log the filtered video IDs
+        logging.debug(f"Filtered Video IDs: {filtered_df['Video ID'].tolist()}")
+
+        return filtered_df
+
+    def get_existing_video_ids(self):
+        cursor = self.conn.cursor()
         try:
-            if 'VV' not in df.columns:
-                logging.error("'VV' column not found in the DataFrame")
-                raise ValueError("'VV' column not found in the DataFrame")
-            filtered_df = df[df['VV'] > 4000]
-            logging.info(f"Filtered {len(filtered_df)} videos with more than 4000 views")
-            return filtered_df
+            cursor.execute("SELECT video_id FROM videos")
+            video_ids = [str(row[0]).strip() for row in cursor.fetchall()]
+            return video_ids
         except Exception as e:
-            logging.error(f"Error filtering videos: {str(e)}")
-            raise
+            logging.error(f"Error getting existing video IDs: {str(e)}")
+            return []
 
     def insert_or_update_records(self, df):
         cursor = self.conn.cursor()
         try:
             for _, row in df.iterrows():
-                # Insert or update video information
-                cursor.execute('''
-                    INSERT OR REPLACE INTO videos
-                    (video_id, video_info, time, creator_name, products)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (
-                    row.get('Video ID'), row.get('Video Info'), row.get('Time'),
-                    row.get('Creator name'), row.get('Products')
-                ))
+                # Check if the video already exists
+                cursor.execute("SELECT 1 FROM videos WHERE video_id = ?", (row['Video ID'],))
+                video_exists = cursor.fetchone() is not None
 
-                # Insert daily performance data
-                cursor.execute('''
-                    INSERT OR REPLACE INTO daily_performance
-                    (video_id, performance_date, vv, likes, comments, shares, new_followers,
-                    v_to_l_clicks, product_impressions, product_clicks, buyers, orders,
-                    unit_sales, video_revenue, gpm, shoppable_video_attributed_gmv,
-                    ctr, v_to_l_rate, video_finish_rate, ctor)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ''', (
-                    row.get('Video ID'), row.get('performance_date'),
-                    row.get('VV'), row.get('Likes'), row.get('Comments'), row.get('Shares'),
-                    row.get('New followers'), row.get('V-to-L clicks'),
-                    row.get('Product Impressions'), row.get('Product Clicks'),
-                    row.get('Buyers'), row.get('Orders'), row.get('Unit Sales'),
-                    row.get('Video Revenue ($)'), row.get('GPM ($)'),
-                    row.get('Shoppable video attributed GMV ($)'), row.get('CTR'),
-                    row.get('V-to-L rate'), row.get('Video Finish Rate'), row.get('CTOR')
-                ))
+                if video_exists:
+                    # Update existing video
+                    cursor.execute('''
+                        UPDATE videos 
+                        SET video_info = ?, time = ?, creator_name = ?, products = ?
+                        WHERE video_id = ?
+                    ''', (row['Video Info'], row['Time'], row['Creator name'], row['Products'], row['Video ID']))
+                else:
+                    # Insert new video only if VV >= 4000
+                    if row['VV'] >= 4000:
+                        cursor.execute('''
+                            INSERT INTO videos (video_id, video_info, time, creator_name, products)
+                            VALUES (?, ?, ?, ?, ?)
+                        ''', (row['Video ID'], row['Video Info'], row['Time'], row['Creator name'], row['Products']))
+                    else:
+                        continue  # Skip this video if it's new and has less than 4000 VV
+
+                # Always insert or update daily performance for existing videos
+                if video_exists or row['VV'] >= 4000:
+                    cursor.execute('''
+                        INSERT OR REPLACE INTO daily_performance 
+                        (video_id, performance_date, vv, likes, comments, shares, new_followers, 
+                        v_to_l_clicks, product_impressions, product_clicks, buyers, orders, 
+                        unit_sales, video_revenue, gpm, shoppable_video_attributed_gmv, ctr, 
+                        v_to_l_rate, video_finish_rate, ctor)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ''', (row['Video ID'], row['performance_date'], row['VV'], row['Likes'], 
+                          row['Comments'], row['Shares'], row['New followers'], row['V-to-L clicks'],
+                          row['Product Impressions'], row['Product Clicks'], row['Buyers'], 
+                          row['Orders'], row['Unit Sales'], row['Video Revenue ($)'], 
+                          row['GPM ($)'], row['Shoppable video attributed GMV ($)'], 
+                          row['CTR'], row['V-to-L rate'], row['Video Finish Rate'], row['CTOR']))
+
             self.conn.commit()
             logging.info(f"Successfully inserted or updated {len(df)} records")
             self.backup_database()
