@@ -5,6 +5,7 @@ from data_manager import DataManager
 from plotter import Plotter
 from datetime import datetime
 import os
+import webbrowser
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -59,6 +60,8 @@ class TikTokTrackerGUI:
         self.results_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.results_tree.configure(yscrollcommand=self.results_scrollbar.set)
         self.results_tree.bind("<<TreeviewSelect>>", self.on_video_select)
+        self.create_context_menu()
+        self.results_tree.bind("<Button-3>", self.show_context_menu)
 
         # Video details
         self.details_frame = ttk.LabelFrame(self.master, text="Video Details")
@@ -80,6 +83,50 @@ class TikTokTrackerGUI:
         # Initialize the last performance date
         latest_date = self.data_manager.get_latest_performance_date()
         self.last_performance_date.set(f"Last Performance Date: {latest_date}")
+
+    def create_context_menu(self):
+        self.context_menu = tk.Menu(self.master, tearoff=0)
+        self.context_menu.add_command(label="Copy Video ID", command=self.copy_video_id)
+        self.context_menu.add_command(label="Open Video in Browser", command=self.open_video_in_browser)
+        
+        # Create a submenu for Plot Metric
+        self.plot_submenu = tk.Menu(self.context_menu, tearoff=0)
+        self.context_menu.add_cascade(label="Plot Metric", menu=self.plot_submenu)
+        
+        # Add metric options to the submenu
+        metrics = ('VV', 'Likes', 'Comments', 'Shares', 'New followers', 'V-to-L clicks',
+                   'Product Impressions', 'Product Clicks', 'Buyers', 'Orders', 'Unit Sales',
+                   'Video Revenue ($)', 'GPM ($)', 'Shoppable video attributed GMV ($)',
+                   'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR')
+        for metric in metrics:
+            self.plot_submenu.add_command(label=metric, command=lambda m=metric: self.plot_metric_from_context(m))
+
+    def show_context_menu(self, event):
+        item = self.results_tree.identify_row(event.y)
+        if item:
+            self.results_tree.selection_set(item)
+            self.results_tree.focus(item)
+        try:
+            self.context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.context_menu.grab_release()
+
+    def copy_video_id(self):
+        selected_item = self.results_tree.selection()[0]
+        video_id = self.results_tree.item(selected_item)['values'][0]
+        self.master.clipboard_clear()
+        self.master.clipboard_append(video_id)
+
+    def open_video_in_browser(self):
+        selected_item = self.results_tree.selection()[0]
+        video_id = self.results_tree.item(selected_item)['values'][0]
+        creator_name = self.results_tree.item(selected_item)['values'][3]  # Assuming 'Creator' is the 4th column
+        
+        # Remove '@' symbol if it's already in the creator_name
+        creator_name = creator_name.lstrip('@')
+        
+        url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
+        webbrowser.open(url)
 
     def upload_file(self):
         try:
@@ -128,7 +175,21 @@ class TikTokTrackerGUI:
         details = self.data_manager.get_video_details(video_id)
         if details:
             self.details_text.delete(1.0, tk.END)
-            self.details_text.insert(tk.END, f"Video ID: {details[0]}\n")
+            
+            # Create a clickable link for the Video ID
+            self.details_text.tag_configure("link", foreground="blue", underline=1)
+            self.details_text.insert(tk.END, "Video ID: ")
+            self.details_text.insert(tk.END, details[0], "link")
+            self.details_text.insert(tk.END, "\n")
+            
+            # Bind the click event to the Video ID
+            self.details_text.tag_bind("link", "<Button-1>", lambda e: self.open_video_from_details(details[0], details[3]))
+            
+            # Change cursor to hand when hovering over the link
+            self.details_text.tag_bind("link", "<Enter>", lambda e: self.details_text.config(cursor="hand2"))
+            self.details_text.tag_bind("link", "<Leave>", lambda e: self.details_text.config(cursor=""))
+            
+            # Insert the rest of the details
             self.details_text.insert(tk.END, f"Video Info: {details[1]}\n")
             self.details_text.insert(tk.END, f"Creation Date: {details[2]}\n")
             self.details_text.insert(tk.END, f"Creator: {details[3]}\n")
@@ -141,6 +202,12 @@ class TikTokTrackerGUI:
             self.details_text.insert(tk.END, f"New Followers: {details[10]}\n")
             self.details_text.insert(tk.END, f"Video Revenue ($): {details[11]}\n")
             # Add more details as needed
+    def open_video_from_details(self, video_id, creator_name):
+        # Remove '@' symbol if it's already in the creator_name
+        creator_name = creator_name.lstrip('@')
+        
+        url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
+        webbrowser.open(url)
 
     def plot_metric(self):
         selected_items = self.results_tree.selection()
@@ -157,6 +224,14 @@ class TikTokTrackerGUI:
         data = self.data_manager.get_time_series_data(video_id, metric)
         self.plotter.plot_metric(data, metric)
         self.plotter.embed_plot(self.master)
+
+    def plot_metric_from_context(self, metric):
+        selected_items = self.results_tree.selection()
+        if selected_items:
+            video_id = self.results_tree.item(selected_items[0])['values'][0]
+            data = self.data_manager.get_time_series_data(video_id, metric)
+            self.plotter.plot_metric(data, metric)
+            self.plotter.embed_plot(self.master)
 
     def clear_video_performance(self):
         # Create a simple dialog to get the date

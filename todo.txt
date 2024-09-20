@@ -1,6 +1,4 @@
 - Add a way to scroll through the videos in the Video Details section, and also sort by clicking on the column headers.
-- Add right click context menu to the videos in the Video Records section.
-- Add link to video in the Video Details section.
 - Need to make sure that it continues to add data to a video that is already in the database even if the video view is lower than 4000 views.
 - Add a function that detects when videos are growing in views and send a notification to the user.
 - The Video Details section is displaying the Views, Likes, Comments, Shares, New Followers data as for the last uploaded record. It should display a cumulative total of all the data.
