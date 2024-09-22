@@ -1,3 +1,14 @@
+[2023-09-22] Plotting Functionality Improvements and Bug Fixes
+
+- Renamed the `plot_metric` method in `gui.py` to `create_metric_plot` for clarity and to distinguish it from the `plot_metric` method in `plotter.py`.
+- Updated references to the renamed method in `gui.py`, including the plot button creation and the `plot_metric_from_context` method.
+- Modified the `Plotter` class in `plotter.py` to fix initialization issues with figure and axes:
+  - Added `self.ax` attribute initialization in the `__init__` method.
+  - Updated `clear_plot` method to also clear the `ax` attribute.
+  - Modified `plot_metric` method to create new figure and axes if they don't exist.
+- These changes resolve the AttributeError related to the 'ax' attribute and ensure the plotter section appears correctly in the interface.
+- Improved overall stability and consistency of the plotting functionality.
+
 [2024-09-20] Video Ingestion Logic Update
 - Modified the video ingestion logic to continue tracking videos that have ever reached 4000 VV.
 - Updated the `filter_videos` method in the `DataManager` class to include videos already in the database, regardless of their current VV count.

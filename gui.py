@@ -77,7 +77,7 @@ class TikTokTrackerGUI:
                                           'Video Revenue ($)', 'GPM ($)', 'Shoppable video attributed GMV ($)',
                                           'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR')
         self.metric_combobox.pack(pady=5)
-        self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.plot_metric)
+        self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.create_metric_plot)
         self.plot_button.pack(pady=5)
 
         # Initialize the last performance date
@@ -209,7 +209,7 @@ class TikTokTrackerGUI:
         url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
         webbrowser.open(url)
 
-    def plot_metric(self):
+    def create_metric_plot(self):
         selected_items = self.results_tree.selection()
         if not selected_items:
             messagebox.showwarning("Warning", "Please select a video to plot.")
@@ -221,6 +221,9 @@ class TikTokTrackerGUI:
             messagebox.showwarning("Warning", "Please select a metric to plot.")
             return
         
+        # Clear existing plot and widgets
+        self.plotter.clear_plot()
+        
         data = self.data_manager.get_time_series_data(video_id, metric)
         self.plotter.plot_metric(data, metric)
         self.plotter.embed_plot(self.master)
@@ -229,6 +232,8 @@ class TikTokTrackerGUI:
         selected_items = self.results_tree.selection()
         if selected_items:
             video_id = self.results_tree.item(selected_items[0])['values'][0]
+            # Clear existing plot and widgets
+            self.plotter.clear_plot()
             data = self.data_manager.get_time_series_data(video_id, metric)
             self.plotter.plot_metric(data, metric)
             self.plotter.embed_plot(self.master)

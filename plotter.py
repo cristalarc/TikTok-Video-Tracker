@@ -8,11 +8,26 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 class Plotter:
     def __init__(self):
-        self.figure, self.ax = plt.subplots(figsize=(8, 4))
+        self.fig = None
+        self.ax = None
         self.canvas = None
+        self.toolbar = None
+
+    def clear_plot(self):
+        if self.canvas:
+            self.canvas.get_tk_widget().destroy()
+        if self.toolbar:
+            self.toolbar.destroy()
+        plt.close('all')
+        self.fig = None
+        self.ax = None
 
     def plot_metric(self, data, metric):
-        self.ax.clear()
+        if self.fig is None or self.ax is None:
+            self.fig, self.ax = plt.subplots(figsize=(10, 6))
+        else:
+            self.ax.clear()
+
         dates, values = zip(*data)
         scatter = self.ax.scatter(dates, values, marker='o')
         self.ax.plot(dates, values)
@@ -20,7 +35,7 @@ class Plotter:
         self.ax.set_ylabel(metric)
         self.ax.set_title(f'{metric} Over Time')
         self.ax.tick_params(axis='x', rotation=45)
-        self.figure.tight_layout()
+        self.fig.tight_layout()
 
         cursor = mplcursors.cursor(scatter, hover=True)
         cursor.connect("add", lambda sel: sel.annotation.set_text(f'Date: {dates[sel.index]}\n{metric}: {values[sel.index]}'))
@@ -28,6 +43,6 @@ class Plotter:
     def embed_plot(self, parent):
         if self.canvas:
             self.canvas.get_tk_widget().destroy()
-        self.canvas = FigureCanvasTkAgg(self.figure, master=parent)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=parent)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)

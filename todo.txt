@@ -1,4 +1,5 @@
 - Add a way to scroll through the videos in the Video Details section, and also sort by clicking on the column headers.
+
 - Add a settings menu at the top where users can specify the VV threshold for videos to be ingested.
 - Add a function that detects when videos are growing in views and send a notification to the user.
 - The Video Details section is displaying the Views, Likes, Comments, Shares, New Followers data as for the last uploaded record. It should display a cumulative total of all the data.
@@ -8,14 +9,20 @@
 
 Bugs:
 - VV, Shares, Video Revenue sorting not working properly.
-- Everytime the plot metric button is clicked, clear the active widgets that display adiditonal info about the metrics on the dots.
+- Multiple rows of the same video are being shown in the Video Details Section. It should be one.
+- The data on Video Database Records and Video Details for each metric should be an aggregation, not the data of the last update.
+
+
 - Not all metrics are working on plotting.
 - Last Performance Date:
     Updates if you load a file previous to the last performance date.
 - When I click on the Clear Video Performance Button, the window asking for data is popping up on my main monitor, and not the active monitor where the program is running.
+- Video Database Record has multiple rows for the same video ID.
 
 Ancilliary
 - Select multiple daily upload files in one load, process them 1 by 1
+- When I click on a section, like the video details section, that section expands so I an have a better view. Make this a setting.
+- Set threshold for video ingesting. Make this a setting.
 - Database cleanup. When an ingested video has had less than 4000 views for more than X time, stop ingesting video.
 - DB backup cleanup. Clear old backups.
 - Improve the date selection process for the database clearing function.
