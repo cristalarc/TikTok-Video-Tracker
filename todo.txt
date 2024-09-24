@@ -9,9 +9,6 @@
 
 Bugs:
 - VV, Shares, Video Revenue sorting not working properly.
-- Multiple rows of the same video are being shown in the Video Details Section. It should be one.
-- The data on Video Database Records and Video Details for each metric should be an aggregation, not the data of the last update.
-
 
 - Not all metrics are working on plotting.
 - Last Performance Date:

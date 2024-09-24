@@ -1,3 +1,8 @@
+[2024-09-24] Aggregated Video Data in Video Database Records and Video Details
+
+- Modified the `get_all_videos` method in the `DataManager` class to return aggregated data for each video ID.
+- Updated the `load_all_videos` method in the `TikTokTrackerGUI` class to display the aggregated data in the Video Database Records section.
+
 [2024-09-24] Added Persistence for VV Threshold Setting
 
 - Added methods to save and load the VV threshold to/from a JSON file in the DataManager class.

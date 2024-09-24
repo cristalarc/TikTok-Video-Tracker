@@ -223,13 +223,13 @@ class DataManager:
         try:
             cursor.execute('''
                 SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
-                       MAX(dp.vv) as max_vv, MAX(dp.shares) as max_shares, 
-                       MAX(dp.video_revenue) as max_video_revenue
+                    SUM(dp.vv) as total_vv, SUM(dp.shares) as total_shares, 
+                    SUM(dp.video_revenue) as total_video_revenue
                 FROM videos v
                 LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
                 WHERE v.video_info LIKE ? OR v.video_id LIKE ? OR v.creator_name LIKE ? OR v.products LIKE ?
                 GROUP BY v.video_id
-                ORDER BY max_vv DESC
+                ORDER BY total_vv DESC
             ''', (f'%{query}%', f'%{query}%', f'%{query}%', f'%{query}%'))
             return cursor.fetchall()
         except Exception as e:
@@ -241,13 +241,15 @@ class DataManager:
         try:
             cursor.execute('''
                 SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
-                       dp.performance_date, dp.vv, dp.likes, dp.comments, dp.shares, 
-                       dp.new_followers, dp.video_revenue
+                    SUM(dp.vv) as total_vv, SUM(dp.likes) as total_likes, 
+                    SUM(dp.comments) as total_comments, SUM(dp.shares) as total_shares, 
+                    SUM(dp.new_followers) as total_new_followers, 
+                    SUM(dp.video_revenue) as total_video_revenue,
+                    MAX(dp.performance_date) as latest_performance_date
                 FROM videos v
                 LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
                 WHERE v.video_id = ?
-                ORDER BY dp.performance_date DESC
-                LIMIT 1
+                GROUP BY v.video_id
             ''', (video_id,))
             return cursor.fetchone()
         except Exception as e:
@@ -355,9 +357,11 @@ class DataManager:
         try:
             cursor.execute('''
                 SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
-                       dp.vv, dp.shares, dp.video_revenue
+                    SUM(dp.vv) as total_vv, SUM(dp.shares) as total_shares, 
+                    SUM(dp.video_revenue) as total_video_revenue
                 FROM videos v
                 LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
+                GROUP BY v.video_id
                 ORDER BY v.time DESC
             ''')
             return cursor.fetchall()

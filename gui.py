@@ -206,14 +206,17 @@ class TikTokTrackerGUI:
             self.details_text.insert(tk.END, f"Creation Date: {details[2]}\n")
             self.details_text.insert(tk.END, f"Creator: {details[3]}\n")
             self.details_text.insert(tk.END, f"Products: {details[4]}\n")
-            self.details_text.insert(tk.END, f"Latest Performance Date: {details[5]}\n")
-            self.details_text.insert(tk.END, f"Views: {details[6]}\n")
-            self.details_text.insert(tk.END, f"Likes: {details[7]}\n")
-            self.details_text.insert(tk.END, f"Comments: {details[8]}\n")
-            self.details_text.insert(tk.END, f"Shares: {details[9]}\n")
-            self.details_text.insert(tk.END, f"New Followers: {details[10]}\n")
-            self.details_text.insert(tk.END, f"Video Revenue ($): {details[11]}\n")
-            # Add more details as needed
+            self.details_text.insert(tk.END, f"Total Views: {details[5]}\n")
+            self.details_text.insert(tk.END, f"Total Likes: {details[6]}\n")
+            self.details_text.insert(tk.END, f"Total Comments: {details[7]}\n")
+            self.details_text.insert(tk.END, f"Total Shares: {details[8]}\n")
+            self.details_text.insert(tk.END, f"Total New Followers: {details[9]}\n")
+            self.details_text.insert(tk.END, f"Total Video Revenue: ${details[10]:.2f}\n")
+            self.details_text.insert(tk.END, f"Latest Performance Date: {details[11]}\n")
+        else:
+            self.details_text.delete(1.0, tk.END)
+            self.details_text.insert(tk.END, "No details found for this video.")
+
     def open_video_from_details(self, video_id, creator_name):
         # Remove '@' symbol if it's already in the creator_name
         creator_name = creator_name.lstrip('@')
