@@ -314,9 +314,9 @@ class SettingsWindow(tk.Toplevel):
         super().__init__(parent)
         self.title("Settings")
         self.data_manager = data_manager
-        self.create_widgets()
+        self.create_widgets_settings()
 
-    def create_widgets(self):
+    def create_widgets_settings(self):
         ttk.Label(self, text="Video View Ingestion Threshold:").grid(row=0, column=0, padx=5, pady=5)
         self.threshold_var = tk.StringVar(value=str(self.data_manager.vv_threshold))
         ttk.Entry(self, textvariable=self.threshold_var).grid(row=0, column=1, padx=5, pady=5)

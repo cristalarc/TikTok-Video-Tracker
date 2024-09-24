@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 import os
 import shutil
+import json
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -12,7 +13,23 @@ class DataManager:
         self.conn = sqlite3.connect(db_path)
         self.create_tables()
         self.migrate_database()
-        self.vv_threshold = 4000  # Default threshold
+        self.vv_threshold = self.load_vv_threshold()  # Load threshold from file
+
+    def set_vv_threshold(self, threshold):
+        self.vv_threshold = threshold
+        self.save_vv_threshold()  # Save threshold to file
+
+    def save_vv_threshold(self):
+        with open('settings.json', 'w') as f:
+            json.dump({'vv_threshold': self.vv_threshold}, f)
+
+    def load_vv_threshold(self):
+        try:
+            with open('settings.json', 'r') as f:
+                settings = json.load(f)
+                return settings.get('vv_threshold', 4000)
+        except FileNotFoundError:
+            return 4000
 
     def backup_database(self):
         # Create backup directory if it doesn't exist

@@ -1,3 +1,9 @@
+[2024-09-24] Added Persistence for VV Threshold Setting
+
+- Added methods to save and load the VV threshold to/from a JSON file in the DataManager class.
+- Modified the DataManager class to load the VV threshold from the JSON file on initialization.
+- Updated the SettingsWindow class to save the new threshold using the set_vv_threshold method.
+
 [2024-09-23] Added Settings Menu and Configurable VV Threshold
 
 - Added a Settings menu to the main GUI.
