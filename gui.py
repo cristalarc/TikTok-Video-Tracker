@@ -19,7 +19,7 @@ class TikTokTrackerGUI:
 
         self.create_menu()
         self.create_widgets()
-        self.load_all_videos()
+        self.load_and_display_all_videos()
 
     def create_menu(self):
         menubar = tk.Menu(self.master)
@@ -89,7 +89,7 @@ class TikTokTrackerGUI:
                                           'Video Revenue ($)', 'GPM ($)', 'Shoppable video attributed GMV ($)',
                                           'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR')
         self.metric_combobox.pack(pady=5)
-        self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.create_metric_plot)
+        self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.create_selected_video_metric_plot)
         self.plot_button.pack(pady=5)
 
         # Initialize the last performance date
@@ -98,8 +98,8 @@ class TikTokTrackerGUI:
 
     def create_context_menu(self):
         self.context_menu = tk.Menu(self.master, tearoff=0)
-        self.context_menu.add_command(label="Copy Video ID", command=self.copy_video_id)
-        self.context_menu.add_command(label="Open Video in Browser", command=self.open_video_in_browser)
+        self.context_menu.add_command(label="Copy Video ID", command=self.copy_selected_video_id)
+        self.context_menu.add_command(label="Open Video in Browser", command=self.open_selected_video_in_browser)
         
         # Create a submenu for Plot Metric
         self.plot_submenu = tk.Menu(self.context_menu, tearoff=0)
@@ -123,13 +123,13 @@ class TikTokTrackerGUI:
         finally:
             self.context_menu.grab_release()
 
-    def copy_video_id(self):
+    def copy_selected_video_id(self):
         selected_item = self.results_tree.selection()[0]
         video_id = self.results_tree.item(selected_item)['values'][0]
         self.master.clipboard_clear()
         self.master.clipboard_append(video_id)
 
-    def open_video_in_browser(self):
+    def open_selected_video_in_browser(self):
         selected_item = self.results_tree.selection()[0]
         video_id = self.results_tree.item(selected_item)['values'][0]
         creator_name = self.results_tree.item(selected_item)['values'][3]  # Assuming 'Creator' is the 4th column
@@ -224,7 +224,7 @@ class TikTokTrackerGUI:
         url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
         webbrowser.open(url)
 
-    def create_metric_plot(self):
+    def create_selected_video_metric_plot(self):
         selected_items = self.results_tree.selection()
         if not selected_items:
             messagebox.showwarning("Warning", "Please select a video to plot.")
@@ -299,7 +299,7 @@ class TikTokTrackerGUI:
             else:
                 messagebox.showerror("Error", "Failed to restore database. Check the log for details.")
 
-    def load_all_videos(self):
+    def load_and_display_all_videos(self):
         self.results_tree.delete(*self.results_tree.get_children())
         videos = self.data_manager.get_all_videos()
         for video in videos:

@@ -1,3 +1,5 @@
+[2024-09-24] Changed methods's names to be more descriptive.
+
 [2024-09-24] Aggregated Video Data in Video Database Records and Video Details
 
 - Modified the `get_all_videos` method in the `DataManager` class to return aggregated data for each video ID.
