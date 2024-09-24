@@ -1,11 +1,13 @@
 - Add a way to scroll through the videos in the Video Details section, and also sort by clicking on the column headers.
 
 - Add a settings menu at the top where users can specify the VV threshold for videos to be ingested.
+
+
 - Add a function that detects when videos are growing in views and send a notification to the user.
 - The Video Details section is displaying the Views, Likes, Comments, Shares, New Followers data as for the last uploaded record. It should display a cumulative total of all the data.
 - I want the UI to be adaptive of my PC resolution?
 - Add better plotting capabilities
-- Allow me to increase or decrease the area of Video Database Records section, Video Details or Plotting section.
+
 
 Bugs:
 - VV, Shares, Video Revenue sorting not working properly.
@@ -28,3 +30,4 @@ Ancilliary
 - Improve the date selection process for the database clearing function.
 - Add functionality for week long data, like deleting data for a full week.
 - Add comments to the code to explain what is happening.
+- Allow me to increase or decrease the area of Video Database Records section, Video Details or Plotting section.

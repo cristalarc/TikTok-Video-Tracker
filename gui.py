@@ -17,8 +17,20 @@ class TikTokTrackerGUI:
         self.data_manager = DataManager()
         self.plotter = Plotter()
 
+        self.create_menu()
         self.create_widgets()
         self.load_all_videos()
+
+    def create_menu(self):
+        menubar = tk.Menu(self.master)
+        self.master.config(menu=menubar)
+
+        settings_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Settings", menu=settings_menu)
+        settings_menu.add_command(label="Open Settings", command=self.open_settings)
+
+    def open_settings(self):
+        SettingsWindow(self.master, self.data_manager)
 
     def create_widgets(self):
         # File upload button
@@ -296,3 +308,27 @@ class TikTokTrackerGUI:
         for index, (val, k) in enumerate(l):
             tv.move(k, '', index)
         tv.heading(col, command=lambda: self.treeview_sort_column(tv, col, not reverse))
+
+class SettingsWindow(tk.Toplevel):
+    def __init__(self, parent, data_manager):
+        super().__init__(parent)
+        self.title("Settings")
+        self.data_manager = data_manager
+        self.create_widgets()
+
+    def create_widgets(self):
+        ttk.Label(self, text="Video View Ingestion Threshold:").grid(row=0, column=0, padx=5, pady=5)
+        self.threshold_var = tk.StringVar(value=str(self.data_manager.vv_threshold))
+        ttk.Entry(self, textvariable=self.threshold_var).grid(row=0, column=1, padx=5, pady=5)
+        ttk.Button(self, text="Save", command=self.save_settings).grid(row=1, column=0, columnspan=2, pady=10)
+
+    def save_settings(self):
+        try:
+            new_threshold = int(self.threshold_var.get())
+            if new_threshold <= 0:
+                raise ValueError("Threshold must be a positive integer")
+            self.data_manager.set_vv_threshold(new_threshold)
+            messagebox.showinfo("Success", "Settings saved successfully")
+            self.destroy()
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))

@@ -12,6 +12,7 @@ class DataManager:
         self.conn = sqlite3.connect(db_path)
         self.create_tables()
         self.migrate_database()
+        self.vv_threshold = 4000  # Default threshold
 
     def backup_database(self):
         # Create backup directory if it doesn't exist
@@ -132,7 +133,7 @@ class DataManager:
 
         # Filter videos based on VV threshold or if they already exist in the database
         filtered_df = df[
-            (df['VV'] >= 4000) | (df['Video ID'].isin(existing_video_ids))
+            (df['VV'] >= self.vv_threshold) | (df['Video ID'].isin(existing_video_ids))
         ]
 
         # Log the filtered video IDs
@@ -167,7 +168,7 @@ class DataManager:
                     ''', (row['Video Info'], row['Time'], row['Creator name'], row['Products'], row['Video ID']))
                 else:
                     # Insert new video only if VV >= 4000
-                    if row['VV'] >= 4000:
+                    if row['VV'] >= self.vv_threshold:
                         cursor.execute('''
                             INSERT INTO videos (video_id, video_info, time, creator_name, products)
                             VALUES (?, ?, ?, ?, ?)
@@ -176,7 +177,7 @@ class DataManager:
                         continue  # Skip this video if it's new and has less than 4000 VV
 
                 # Always insert or update daily performance for existing videos
-                if video_exists or row['VV'] >= 4000:
+                if video_exists or row['VV'] >= self.vv_threshold:
                     cursor.execute('''
                         INSERT OR REPLACE INTO daily_performance 
                         (video_id, performance_date, vv, likes, comments, shares, new_followers, 

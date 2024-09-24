@@ -1,4 +1,12 @@
-[2023-09-22] Plotting Functionality Improvements and Bug Fixes
+[2024-09-23] Added Settings Menu and Configurable VV Threshold
+
+- Added a Settings menu to the main GUI.
+- Created a new SettingsWindow class for configuring application settings.
+- Implemented the ability to modify the Video View Ingestion threshold through the Settings window.
+- Modified the DataManager class to use a configurable VV threshold instead of a hardcoded value.
+- Updated the filter_videos method in DataManager to use the new configurable threshold.
+
+[2024-09-22] Plotting Functionality Improvements and Bug Fixes
 
 - Renamed the `plot_metric` method in `gui.py` to `create_metric_plot` for clarity and to distinguish it from the `plot_metric` method in `plotter.py`.
 - Updated references to the renamed method in `gui.py`, including the plot button creation and the `plot_metric_from_context` method.
