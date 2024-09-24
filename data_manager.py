@@ -224,7 +224,7 @@ class DataManager:
             cursor.execute('''
                 SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
                     SUM(dp.vv) as total_vv, SUM(dp.shares) as total_shares, 
-                    SUM(dp.video_revenue) as total_video_revenue
+                    ROUND(SUM(dp.video_revenue), 2) as total_video_revenue
                 FROM videos v
                 LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
                 WHERE v.video_info LIKE ? OR v.video_id LIKE ? OR v.creator_name LIKE ? OR v.products LIKE ?
@@ -358,7 +358,7 @@ class DataManager:
             cursor.execute('''
                 SELECT v.video_id, v.video_info, v.time, v.creator_name, v.products, 
                     SUM(dp.vv) as total_vv, SUM(dp.shares) as total_shares, 
-                    SUM(dp.video_revenue) as total_video_revenue
+                    ROUND(SUM(dp.video_revenue), 2) as total_video_revenue
                 FROM videos v
                 LEFT JOIN daily_performance dp ON v.video_id = dp.video_id
                 GROUP BY v.video_id

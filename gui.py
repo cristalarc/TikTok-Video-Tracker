@@ -307,9 +307,14 @@ class TikTokTrackerGUI:
 
     def treeview_sort_column(self, tv, col, reverse):
         l = [(tv.set(k, col), k) for k in tv.get_children('')]
-        l.sort(reverse=reverse)
+        try:
+            l.sort(key=lambda t: float(t[0]), reverse=reverse)
+        except ValueError:
+            l.sort(key=lambda t: t[0].lower(), reverse=reverse)
+
         for index, (val, k) in enumerate(l):
             tv.move(k, '', index)
+
         tv.heading(col, command=lambda: self.treeview_sort_column(tv, col, not reverse))
 
 class SettingsWindow(tk.Toplevel):

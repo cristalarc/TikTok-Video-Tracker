@@ -1,3 +1,11 @@
+[2024-09-25] Improved Sorting Functionality and Revenue Display
+
+- Enhanced the `treeview_sort_column` method in the `TikTokTrackerGUI` class to properly handle both numeric and string values for sorting.
+- Updated the column creation in the `create_widgets` method to ensure proper sorting is applied when column headers are clicked.
+- Modified the `get_all_videos` method in the `DataManager` class to round the total video revenue to two decimal places.
+- Updated the `search_videos` method in the `DataManager` class to also round the total video revenue to two decimal places for consistency.
+- These changes improve the sorting functionality in the Video Database Records section and ensure that video revenue is consistently displayed with a maximum of two decimal places.
+
 [2024-09-24] Changed methods's names to be more descriptive.
 
 [2024-09-24] Aggregated Video Data in Video Database Records and Video Details
