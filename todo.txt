@@ -1,12 +1,24 @@
 - Add a function that detects when videos are growing in views and send a notification to the user.
 - The Video Details section is displaying the Views, Likes, Comments, Shares, New Followers data as for the last uploaded record. It should display a cumulative total of all the data.
 - I want the UI to be adaptive of my PC resolution?
-- Add better plotting capabilities
+- Add better plotting capabilities, like agregating data per week and plot multiple variables.
 
 
 Bugs:
 
 - Not all metrics are working on plotting.
+Product Impressions not plotting
+Product Clicks not plotting
+Unit Sales not plotting
+Video Revenue ($) not plotting
+V-to-L rate not plotting
+Video Finish Rate not plotting
+
+CTR Y axis not working
+CTOR Y axis not working. 
+
+
+
 - Last Performance Date:
     Updates if you load a file previous to the last performance date.
 - When I click on the Clear Video Performance Button, the window asking for data is popping up on my main monitor, and not the active monitor where the program is running.

@@ -260,6 +260,14 @@ class DataManager:
     def get_time_series_data(self, video_id, metric):
         cursor = self.conn.cursor()
         try:
+            valid_metrics = [
+                'vv', 'likes', 'comments', 'shares', 'product_impressions', 
+                'product_clicks', 'orders', 'unit_sales', 'video_revenue', 
+                'ctr', 'v_to_l_rate', 'video_finish_rate', 'ctor'
+            ]
+            if metric not in valid_metrics:
+                raise ValueError(f"Invalid metric: {metric}")
+            
             cursor.execute(f'''
                 SELECT performance_date, {metric}
                 FROM daily_performance

@@ -83,12 +83,13 @@ class TikTokTrackerGUI:
 
         # Metric selection for plotting
         self.metric_var = tk.StringVar()
-        self.metric_combobox = ttk.Combobox(self.master, textvariable=self.metric_var)
-        self.metric_combobox['values'] = ('VV', 'Likes', 'Comments', 'Shares', 'New followers', 'V-to-L clicks',
-                                          'Product Impressions', 'Product Clicks', 'Buyers', 'Orders', 'Unit Sales',
-                                          'Video Revenue ($)', 'GPM ($)', 'Shoppable video attributed GMV ($)',
-                                          'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR')
-        self.metric_combobox.pack(pady=5)
+        self.metric_options = [
+            'VV', 'Likes', 'Comments', 'Shares', 'Product Impressions', 
+            'Product Clicks', 'Orders', 'Unit Sales', 'Video Revenue ($)', 
+            'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR'
+        ]
+        self.metric_menu = ttk.Combobox(self.master, textvariable=self.metric_var, values=self.metric_options)
+        self.metric_menu.pack(pady=5)
         self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.create_selected_video_metric_plot)
         self.plot_button.pack(pady=5)
 
@@ -106,10 +107,9 @@ class TikTokTrackerGUI:
         self.context_menu.add_cascade(label="Plot Metric", menu=self.plot_submenu)
         
         # Add metric options to the submenu
-        metrics = ('VV', 'Likes', 'Comments', 'Shares', 'New followers', 'V-to-L clicks',
-                   'Product Impressions', 'Product Clicks', 'Buyers', 'Orders', 'Unit Sales',
-                   'Video Revenue ($)', 'GPM ($)', 'Shoppable video attributed GMV ($)',
-                   'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR')
+        metrics = ('VV', 'Likes', 'Comments', 'Shares', 'Product Impressions', 
+                'Product Clicks', 'Orders', 'Unit Sales', 'Video Revenue ($)', 
+                'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR')
         for metric in metrics:
             self.plot_submenu.add_command(label=metric, command=lambda m=metric: self.plot_metric_from_context(m))
 
@@ -237,10 +237,31 @@ class TikTokTrackerGUI:
             messagebox.showwarning("Warning", "Please select a metric to plot.")
             return
         
+        # Convert display metric name to database column name
+        metric_mapping = {
+            'VV': 'vv',
+            'Likes': 'likes',
+            'Comments': 'comments',
+            'Shares': 'shares',
+            'Product Impressions': 'product_impressions',
+            'Product Clicks': 'product_clicks',
+            'Orders': 'orders',
+            'Unit Sales': 'unit_sales',
+            'Video Revenue ($)': 'video_revenue',
+            'CTR': 'ctr',
+            'V-to-L rate': 'v_to_l_rate',
+            'Video Finish Rate': 'video_finish_rate',
+            'CTOR': 'ctor'
+        }
+        db_metric = metric_mapping.get(metric)
+        if not db_metric:
+            messagebox.showwarning("Warning", "Invalid metric selected.")
+            return
+        
         # Clear existing plot and widgets
         self.plotter.clear_plot()
         
-        data = self.data_manager.get_time_series_data(video_id, metric)
+        data = self.data_manager.get_time_series_data(video_id, db_metric)
         self.plotter.plot_metric(data, metric)
         self.plotter.embed_plot(self.master)
 
@@ -248,9 +269,31 @@ class TikTokTrackerGUI:
         selected_items = self.results_tree.selection()
         if selected_items:
             video_id = self.results_tree.item(selected_items[0])['values'][0]
+            
+            # Convert display metric name to database column name
+            metric_mapping = {
+                'VV': 'vv',
+                'Likes': 'likes',
+                'Comments': 'comments',
+                'Shares': 'shares',
+                'Product Impressions': 'product_impressions',
+                'Product Clicks': 'product_clicks',
+                'Orders': 'orders',
+                'Unit Sales': 'unit_sales',
+                'Video Revenue ($)': 'video_revenue',
+                'CTR': 'ctr',
+                'V-to-L rate': 'v_to_l_rate',
+                'Video Finish Rate': 'video_finish_rate',
+                'CTOR': 'ctor'
+            }
+            db_metric = metric_mapping.get(metric)
+            if not db_metric:
+                messagebox.showwarning("Warning", "Invalid metric selected.")
+                return
+            
             # Clear existing plot and widgets
             self.plotter.clear_plot()
-            data = self.data_manager.get_time_series_data(video_id, metric)
+            data = self.data_manager.get_time_series_data(video_id, db_metric)
             self.plotter.plot_metric(data, metric)
             self.plotter.embed_plot(self.master)
 

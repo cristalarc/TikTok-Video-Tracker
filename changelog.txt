@@ -1,3 +1,24 @@
+[2024-09-25] Plotting Functionality Improvements and Bug Fixes
+
+- Renamed the `plot_metric` method in `gui.py` to `create_metric_plot` for clarity and to distinguish it from the `plot_metric` method in `plotter.py`.
+- Updated references to the renamed method in `gui.py`, including the plot button creation and the `plot_metric_from_context` method.
+- Modified the `Plotter` class in `plotter.py` to fix initialization issues with figure and axes:
+  - Added `self.ax` attribute initialization in the `__init__` method.
+  - Updated `clear_plot` method to also clear the `ax` attribute.
+  - Modified `plot_metric` method to create new figure and axes if they don't exist.
+- These changes resolve the AttributeError related to the 'ax' attribute and ensure the plotter section appears correctly in the interface.
+- Improved overall stability and consistency of the plotting functionality.
+- Removed the following metrics from plotting options:
+  - New Followers
+  - V-to-L clicks
+  - Buyers
+  - GPM
+  - Shoppable video attributed GMV ($)
+- Updated the `create_context_menu` method in the `TikTokTrackerGUI` class to reflect the reduced set of available metrics for plotting in the right-click context menu.
+- Modified the `get_time_series_data` method in the `DataManager` class to include a check for valid metrics, adding an extra layer of security.
+- Updated the `create_selected_video_metric_plot` and `plot_metric_from_context` methods in the `TikTokTrackerGUI` class to handle the conversion between display metric names and database column names consistently.
+- These changes ensure that only the desired metrics can be plotted and improve the overall consistency of the plotting functionality across different parts of the application.
+
 [2024-09-25] Added Safeguard for Single-Day Data and Renamed Excel Reading Method
 
 - Renamed `read_excel` method to `read_video_performance_excel` in the `DataManager` class for improved clarity.
