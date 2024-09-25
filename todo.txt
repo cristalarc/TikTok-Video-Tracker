@@ -22,3 +22,4 @@ Ancilliary
 - Add functionality for week long data, like deleting data for a full week.
 - Add comments to the code to explain what is happening.
 - Allow me to increase or decrease the area of Video Database Records section, Video Details or Plotting section.
+- Generate Docstrings for all the functions and methods.

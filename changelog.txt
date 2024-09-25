@@ -1,4 +1,11 @@
-[2024-09-25] Improved Sorting Functionality and Revenue Display
+[2024-09-25] Added Safeguard for Single-Day Data and Renamed Excel Reading Method
+
+- Renamed `read_excel` method to `read_video_performance_excel` in the `DataManager` class for improved clarity.
+- Modified `extract_date_from_range` method to raise an error if the date range in the Excel file spans multiple days.
+- Updated `upload_file` method in `TikTokTrackerGUI` class to handle the new error and display appropriate messages to the user.
+- These changes ensure that only single-day data can be processed, preventing potential data inconsistencies from multi-day uploads.
+
+[2024-09-24] Improved Sorting Functionality and Revenue Display
 
 - Enhanced the `treeview_sort_column` method in the `TikTokTrackerGUI` class to properly handle both numeric and string values for sorting.
 - Updated the column creation in the `create_widgets` method to ensure proper sorting is applied when column headers are clicked.

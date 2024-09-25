@@ -5,6 +5,7 @@ from datetime import datetime
 import os
 import shutil
 import json
+import re
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -108,7 +109,7 @@ class DataManager:
             logging.error(f"Error migrating database: {str(e)}")
             self.conn.rollback()
 
-    def read_excel(self, file_path):
+    def read_video_performance_excel(self, file_path):
         try:
             # Read the date range from cell A1
             date_range = pd.read_excel(file_path, header=None, nrows=1).iloc[0, 0]

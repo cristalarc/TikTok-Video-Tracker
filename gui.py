@@ -144,30 +144,31 @@ class TikTokTrackerGUI:
         try:
             file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
             if file_path:
-                df = self.data_manager.read_excel(file_path)
-                filtered_df = self.data_manager.filter_videos(df)
-                
-                # Check if data already exists for this date
-                date = filtered_df['performance_date'].iloc[0]
-                if self.data_manager.check_existing_data(date):
-                    response = messagebox.askyesno("Data Already Exists", 
-                        f"Data for {date} already exists in the database. Do you want to replace it?")
-                    if response:
-                        self.data_manager.replace_data_for_date(filtered_df, date)
-                        messagebox.showinfo("Success", f"Data for {date} has been replaced successfully!")
+                try:
+                    df = self.data_manager.read_video_performance_excel(file_path)
+                    filtered_df = self.data_manager.filter_videos(df)
+                    
+                    # Check if data already exists for this date
+                    date = filtered_df['performance_date'].iloc[0]
+                    if self.data_manager.check_existing_data(date):
+                        response = messagebox.askyesno("Data Already Exists", 
+                            f"Data for {date} already exists in the database. Do you want to replace it?")
+                        if response:
+                            self.data_manager.replace_data_for_date(filtered_df, date)
+                            messagebox.showinfo("Success", f"Data for {date} has been replaced successfully!")
+                        else:
+                            messagebox.showinfo("Info", "Upload cancelled.")
+                            return
                     else:
-                        messagebox.showinfo("Info", "Upload cancelled.")
-                        self.last_performance_date.set(f"Last Performance Date: {date}") ## Is this correct?
-                        return
-                else:
-                    self.data_manager.insert_or_update_records(filtered_df)
-                    messagebox.showinfo("Success", "File uploaded and processed successfully! Database backup created.")
+                        self.data_manager.insert_or_update_records(filtered_df)
+                        messagebox.showinfo("Success", "File uploaded and processed successfully! Database backup created.")
+                    
                     self.last_performance_date.set(f"Last Performance Date: {date}")
-        except ValueError as ve:
-            messagebox.showerror("Error", str(ve))
-            logging.error(f"Error in upload_file: {str(ve)}")
+                    self.load_and_display_all_videos()
+                except ValueError as ve:
+                    messagebox.showerror("Error", str(ve))
         except Exception as e:
-            error_message = f"An error occurred while processing the file: {str(e)}\n\nPlease check the log for more details."
+            error_message = f"An error occurred while uploading the file: {str(e)}\n\nPlease check the log for more details."
             messagebox.showerror("Error", error_message)
             logging.error(f"Error in upload_file: {str(e)}", exc_info=True)
 
