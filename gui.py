@@ -163,7 +163,9 @@ class TikTokTrackerGUI:
                         self.data_manager.insert_or_update_records(filtered_df)
                         messagebox.showinfo("Success", "File uploaded and processed successfully! Database backup created.")
                     
-                    self.last_performance_date.set(f"Last Performance Date: {date}")
+                    # Always fetch the latest performance date from the database
+                    latest_date = self.data_manager.get_latest_performance_date()
+                    self.last_performance_date.set(f"Last Performance Date: {latest_date}")
                     self.load_and_display_all_videos()
                 except ValueError as ve:
                     messagebox.showerror("Error", str(ve))
@@ -304,8 +306,8 @@ class TikTokTrackerGUI:
             self.plotter.embed_plot(self.master)
 
     def clear_video_performance(self):
-        # Create a simple dialog to get the date
-        date = simpledialog.askstring("Clear Video Performance", "Enter date to clear (YYYY-MM-DD):")
+        # Create a simple dialog to get the date, specifying the parent window
+        date = simpledialog.askstring("Clear Video Performance", "Enter date to clear (YYYY-MM-DD):", parent=self.master)
         if not date:
             return
 
@@ -313,18 +315,18 @@ class TikTokTrackerGUI:
             # Validate date format
             datetime.strptime(date, "%Y-%m-%d")
         except ValueError:
-            messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.")
+            messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.", parent=self.master)
             return
 
         try:
             result = self.data_manager.clear_data_for_date(date)
             if result:
-                messagebox.showinfo("Success", f"Data for {date} has been cleared. A backup was created before clearing.")
+                messagebox.showinfo("Success", f"Data for {date} has been cleared. A backup was created before clearing.", parent=self.master)
             else:
-                messagebox.showinfo("Info", f"No data found for {date}.")
+                messagebox.showinfo("Info", f"No data found for {date}.", parent=self.master)
         except Exception as e:
             error_message = f"An error occurred while clearing data: {str(e)}\n\nPlease check the log for more details."
-            messagebox.showerror("Error", error_message)
+            messagebox.showerror("Error", error_message, parent=self.master)
             logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)
 
     def restore_database(self):

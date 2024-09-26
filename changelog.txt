@@ -19,7 +19,13 @@
 
 - Added import for `matplotlib.dates` in the `plotter.py` file to support proper date formatting on the x-axis.
 
-These changes significantly enhance the plotting capabilities of the application, ensuring that all metrics (both percentage-based and non-percentage-based) can be correctly visualized. The improvements also provide better error handling and debugging information, making it easier to identify and resolve any future issues with the plotting functionality.
+- Fixed a bug in the `upload_file` method of the `TikTokTrackerGUI` class:
+  - The Last Performance Date widget now correctly displays the most recent date in the database after each file upload.
+  - This ensures that uploading older data doesn't incorrectly update the Last Performance Date.
+
+- Fixed a bug in the `clear_video_performance` method of the `TikTokTrackerGUI` class:
+  - The Clear Video Performance dialog now appears on the same monitor as the main application window.
+  - Added the `parent=self.master` parameter to all dialog calls within the method to ensure consistent positioning.
 
 [2024-09-25] Plotting Functionality Improvements and Bug Fixes
 

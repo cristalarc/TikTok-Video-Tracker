@@ -5,12 +5,7 @@
 
 
 Bugs:
-
-
-- Last Performance Date:
-    Updates if you load a file previous to the last performance date.
 - When I click on the Clear Video Performance Button, the window asking for data is popping up on my main monitor, and not the active monitor where the program is running.
-- Video Database Record has multiple rows for the same video ID.
 
 Ancilliary
 - Select multiple daily upload files in one load, process them 1 by 1
