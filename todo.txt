@@ -6,18 +6,6 @@
 
 Bugs:
 
-- Not all metrics are working on plotting.
-Product Impressions not plotting
-Product Clicks not plotting
-Unit Sales not plotting
-Video Revenue ($) not plotting
-V-to-L rate not plotting
-Video Finish Rate not plotting
-
-CTR Y axis not working
-CTOR Y axis not working. 
-
-
 
 - Last Performance Date:
     Updates if you load a file previous to the last performance date.

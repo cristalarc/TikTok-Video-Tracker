@@ -1,1 +1,2 @@
 - Backup folder will be created in the same folder as the script.
+- Percentage based metrics need to be manually set in the plot_metric method.

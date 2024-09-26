@@ -1,3 +1,26 @@
+[2024-09-26] Plotting Functionality Improvements and Bug Fixes
+
+- Modified the `plot_metric` method in the `Plotter` class to handle both percentage-based and non-percentage-based metrics correctly:
+  - Added proper date parsing and formatting for the x-axis.
+  - Implemented conversion of percentage strings to floats for percentage-based metrics.
+  - Updated y-axis formatting for percentage-based metrics to display values as percentages.
+  - Improved error handling and logging for better debugging.
+
+- Updated the `create_selected_video_metric_plot` method in the `TikTokTrackerGUI` class:
+  - Added debug logging to track data retrieval and processing.
+  - Implemented checks to ensure data is available before attempting to plot.
+
+- Resolved issues with plotting various metrics:
+  - Fixed the y-axis display for percentage-based metrics (CTR, CTOR, Video Finish Rate, V-to-L rate).
+  - Corrected the handling of non-numeric data in plots.
+  - Addressed the "categorical units" warning for non-percentage metrics.
+
+- Improved overall stability and consistency of the plotting functionality across different metric types.
+
+- Added import for `matplotlib.dates` in the `plotter.py` file to support proper date formatting on the x-axis.
+
+These changes significantly enhance the plotting capabilities of the application, ensuring that all metrics (both percentage-based and non-percentage-based) can be correctly visualized. The improvements also provide better error handling and debugging information, making it easier to identify and resolve any future issues with the plotting functionality.
+
 [2024-09-25] Plotting Functionality Improvements and Bug Fixes
 
 - Renamed the `plot_metric` method in `gui.py` to `create_metric_plot` for clarity and to distinguish it from the `plot_metric` method in `plotter.py`.

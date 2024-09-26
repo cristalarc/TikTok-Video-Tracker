@@ -262,6 +262,12 @@ class TikTokTrackerGUI:
         self.plotter.clear_plot()
         
         data = self.data_manager.get_time_series_data(video_id, db_metric)
+        logging.debug(f"Data retrieved for plotting: {data}")
+        
+        if not data:
+            messagebox.showwarning("Warning", "No data available for the selected metric.")
+            return
+        
         self.plotter.plot_metric(data, metric)
         self.plotter.embed_plot(self.master)
 
