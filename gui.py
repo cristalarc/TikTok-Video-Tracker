@@ -16,15 +16,23 @@ class TikTokTrackerGUI:
         self.master.geometry("1000x700")
         self.data_manager = DataManager()
         self.plotter = Plotter()
-
+        self.trending_label = None
         self.create_menu()
         self.create_widgets()
         self.load_and_display_all_videos()
+        self.show_home()
 
     def create_menu(self):
         menubar = tk.Menu(self.master)
         self.master.config(menu=menubar)
 
+        # Home menu
+        menubar.add_command(label="Home", command=self.show_home)
+
+        # Trending menu
+        menubar.add_command(label="Trending", command=self.show_trending)
+
+        # Settings menu
         settings_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Settings", menu=settings_menu)
         settings_menu.add_command(label="Open Settings", command=self.open_settings)
@@ -96,6 +104,9 @@ class TikTokTrackerGUI:
         # Initialize the last performance date
         latest_date = self.data_manager.get_latest_performance_date()
         self.last_performance_date.set(f"Last Performance Date: {latest_date}")
+
+        # Show the home page on startup
+        self.show_home()
 
     def create_context_menu(self):
         self.context_menu = tk.Menu(self.master, tearoff=0)
@@ -368,6 +379,40 @@ class TikTokTrackerGUI:
             tv.move(k, '', index)
 
         tv.heading(col, command=lambda: self.treeview_sort_column(tv, col, not reverse))
+    
+    def show_home(self):
+        # Clear any widgets from other pages
+        self.clear_page()
+
+        # Show all widgets related to the home page
+        self.upload_button.pack(pady=10, side=tk.LEFT, padx=5)
+        self.clear_data_button.pack(pady=10, side=tk.LEFT, padx=5)
+        self.restore_button.pack(pady=10, side=tk.LEFT, padx=5)
+        self.search_entry.pack(pady=5)
+        self.search_button.pack(pady=5)
+        self.last_performance_date_label.pack(anchor='ne', padx=10, pady=5)
+        self.results_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        self.details_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        self.metric_menu.pack(pady=5)
+        self.plot_button.pack(pady=5)
+
+    def show_trending(self):
+        # Clear any widgets from other pages
+        self.clear_page()
+
+        # Show the Trending page content
+        self.trending_label = ttk.Label(self.master, text="Trending Page (Under Construction)")
+        self.trending_label.pack(pady=20)
+
+    def clear_page(self):
+        # Hide all widgets
+        for widget in self.master.winfo_children():
+            widget.pack_forget()
+        
+        # Destroy the trending label if it exists
+        if self.trending_label:
+            self.trending_label.destroy()
+            self.trending_label = None
 
 class SettingsWindow(tk.Toplevel):
     def __init__(self, parent, data_manager):
@@ -392,3 +437,5 @@ class SettingsWindow(tk.Toplevel):
             self.destroy()
         except ValueError as e:
             messagebox.showerror("Error", str(e))
+    
+    
