@@ -2,15 +2,8 @@
 - I want the UI to be adaptive of my PC resolution?
 - Add better plotting capabilities, like agregating data per week and plot multiple variables.
 
-
 Bugs:
-Plotting:
-For some videos, the X axis is creating duplicate entries with no datapoint plotted to it.
-7410852396387044651
-7411649857649216798
-7410560581930847518
-It seems like for single data point the X axis builder is not working. Creates months of labels.
-7412021303017884959
+
 
 Ancilliary
 - Select multiple daily upload files in one load, process them 1 by 1
@@ -23,3 +16,4 @@ Ancilliary
 - Add comments to the code to explain what is happening.
 - Allow me to increase or decrease the area of Video Database Records section, Video Details or Plotting section.
 - Generate Docstrings for all the functions and methods.
+- Color coding. Video IDs need colocr coding when they reach a certain threshold like 50k views. Make this an adjustable setting.

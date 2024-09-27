@@ -6,6 +6,17 @@
   - Created a `clear_page` method to ensure proper clearing of widgets when switching between pages.
   - Updated the `__init__` method to initialize new attributes and show the home page by default.
 
+Bug Fixes for Plotting X-axis Issues
+
+- Resolved issues where:
+  - Single data point plots displayed an X-axis spanning multiple months.
+    - Updated `plot_metric` in `Plotter` class to set X-axis limits narrowly around the single date.
+  - X-axis showed duplicate dates with no data points.
+    - Customized X-axis ticks to display only dates from the data, eliminating duplicates.
+  - Improved date label formatting and rotation for better readability.
+
+These changes ensure that plots accurately represent the data with correct X-axis labeling.
+
 [2024-09-26] Plotting Functionality Improvements and Bug Fixes
 
 - Modified the `plot_metric` method in the `Plotter` class to handle both percentage-based and non-percentage-based metrics correctly:
