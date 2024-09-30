@@ -105,6 +105,15 @@ class TikTokTrackerGUI:
         latest_date = self.data_manager.get_latest_performance_date()
         self.last_performance_date.set(f"Last Performance Date: {latest_date}")
 
+        # Second metric selection for plotting
+        self.metric_var2 = tk.StringVar()
+        self.metric_menu2 = ttk.Combobox(self.master, textvariable=self.metric_var2, values=self.metric_options)
+        self.metric_menu2.pack(pady=5)
+
+        # New button to plot both metrics
+        self.plot_dual_button = ttk.Button(self.master, text="Plot Dual Metrics", command=self.create_selected_video_dual_metric_plot)
+        self.plot_dual_button.pack(pady=5)
+
         # Show the home page on startup
         self.show_home()
 
@@ -395,6 +404,8 @@ class TikTokTrackerGUI:
         self.details_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
         self.metric_menu.pack(pady=5)
         self.plot_button.pack(pady=5)
+        self.metric_menu2.pack(pady=5)
+        self.plot_dual_button.pack(pady=5)
 
     def show_trending(self):
         # Clear any widgets from other pages
@@ -413,6 +424,63 @@ class TikTokTrackerGUI:
         if self.trending_label:
             self.trending_label.destroy()
             self.trending_label = None
+    
+    def create_selected_video_dual_metric_plot(self):
+        selected_items = self.results_tree.selection()
+        if not selected_items:
+            messagebox.showwarning("Warning", "Please select a video to plot.")
+            return
+
+        video_id = self.results_tree.item(selected_items[0])['values'][0]
+        metric1 = self.metric_var.get()
+        metric2 = self.metric_var2.get()
+
+        if not metric1 or not metric2:
+            messagebox.showwarning("Warning", "Please select both metrics to plot.")
+            return
+
+        if metric1 == metric2:
+            messagebox.showwarning("Warning", "Please select two different metrics to plot.")
+            return
+
+        # Convert display metric names to database column names
+        metric_mapping = {
+            'VV': 'vv',
+            'Likes': 'likes',
+            'Comments': 'comments',
+            'Shares': 'shares',
+            'Product Impressions': 'product_impressions',
+            'Product Clicks': 'product_clicks',
+            'Orders': 'orders',
+            'Unit Sales': 'unit_sales',
+            'Video Revenue ($)': 'video_revenue',
+            'CTR': 'ctr',
+            'V-to-L rate': 'v_to_l_rate',
+            'Video Finish Rate': 'video_finish_rate',
+            'CTOR': 'ctor'
+        }
+
+        db_metric1 = metric_mapping.get(metric1)
+        db_metric2 = metric_mapping.get(metric2)
+
+        if not db_metric1 or not db_metric2:
+            messagebox.showwarning("Warning", "Invalid metrics selected.")
+            return
+
+        # Clear existing plot and widgets
+        self.plotter.clear_plot()
+
+        data1 = self.data_manager.get_time_series_data(video_id, db_metric1)
+        data2 = self.data_manager.get_time_series_data(video_id, db_metric2)
+        logging.debug(f"Data retrieved for plotting: data1={data1}, data2={data2}")
+
+        if not data1 or not data2:
+            messagebox.showwarning("Warning", "No data available for the selected metrics.")
+            return
+
+        # Plot both metrics
+        self.plotter.plot_dual_metric(data1, metric1, data2, metric2)
+        self.plotter.embed_plot(self.master)
 
 class SettingsWindow(tk.Toplevel):
     def __init__(self, parent, data_manager):
