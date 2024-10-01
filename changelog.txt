@@ -1,3 +1,48 @@
+[2024-10-01] Enhanced Dual Metric Plotting and Error Handling
+
+- Improved the `plot_dual_metric` method in the Plotter class:
+  - Added support for handling "--" values in percentage-based metrics.
+  - Implemented conversion of "--" to np.nan for proper data handling.
+  - Updated the interactive cursor to display "--" for missing data points.
+
+- Enhanced the `plot_metric` method in the Plotter class:
+  - Added support for handling "--" values in both percentage-based and non-percentage metrics.
+  - Implemented conversion of "--" to np.nan and subsequent removal of NaN values before plotting.
+  - Updated the interactive cursor to display "--" for missing data points.
+
+- Improved error handling and user feedback:
+  - Added checks to prevent plotting when no valid data is available.
+  - Implemented warning messages for scenarios with no plottable data.
+
+- Data processing enhancements:
+  - Utilized Pandas DataFrame for efficient handling of missing data.
+  - Implemented data cleaning steps to ensure only valid data points are plotted.
+
+- Code refactoring and optimization:
+  - Consolidated similar code patterns in `plot_metric` and `plot_dual_metric` methods.
+  - Improved code readability and maintainability.
+
+- Bug fixes:
+  - Resolved ValueError issues related to converting "--" strings to float.
+  - Fixed potential crashes when all data points for a metric were invalid.
+
+[2024-09-30] Added Dual Metric Plotting Functionality
+
+- Enhanced the plotting capabilities of the application:
+  - Added a second metric selection dropdown in the GUI.
+  - Implemented a new "Plot Dual Metrics" button in the TikTokTrackerGUI class.
+  - Created a `create_selected_video_dual_metric_plot` method in the TikTokTrackerGUI class to handle dual metric plotting logic.
+  - Developed a `plot_dual_metric` method in the Plotter class to visualize two metrics on the same chart with separate Y-axes.
+
+- Enhanced data handling for dual metric plotting:
+  - Modified the data retrieval process to fetch data for two metrics simultaneously.
+  - Implemented data alignment using Pandas to handle potential mismatches in date ranges between metrics.
+
+- Updated the Plotter class:
+  - Added functionality to create and manage dual Y-axis plots.
+  - Implemented different color coding for each metric (blue for the first metric, red for the second).
+  - Added legends to distinguish between the two plotted metrics.
+
 [2024-09-27] Added Home and Trending Pages
 
 - Enhanced the user interface with new navigation options:

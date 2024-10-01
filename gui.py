@@ -284,7 +284,7 @@ class TikTokTrackerGUI:
         self.plotter.clear_plot()
         
         data = self.data_manager.get_time_series_data(video_id, db_metric)
-        logging.debug(f"Data retrieved for plotting: {data}")
+        logging.info(f"Data retrieved for plotting: {data}")
         
         if not data:
             messagebox.showwarning("Warning", "No data available for the selected metric.")
@@ -472,7 +472,7 @@ class TikTokTrackerGUI:
 
         data1 = self.data_manager.get_time_series_data(video_id, db_metric1)
         data2 = self.data_manager.get_time_series_data(video_id, db_metric2)
-        logging.debug(f"Data retrieved for plotting: data1={data1}, data2={data2}")
+        logging.info(f"Data retrieved for plotting: data1={data1}, data2={data2}")
 
         if not data1 or not data2:
             messagebox.showwarning("Warning", "No data available for the selected metrics.")

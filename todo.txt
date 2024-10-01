@@ -4,14 +4,16 @@
 - Improve logging. Add levels and delete unnecesary logging.
 
 Improvements:
-Dynamic Metric Handling: Consider allowing multiple metrics to be plotted simultaneously, not just two.
-Interactive Plots: Explore adding interactive features like zooming or hovering to see data values using libraries like mplcursors (already used in your code).
-Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
+-Dynamic Metric Handling: Consider allowing multiple metrics to be plotted simultaneously, not just two.
+-Interactive Plots: Explore adding interactive features like zooming or hovering to see data values using libraries like mplcursors (already used in your code).
+-Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
 
 Bugs:
 - When duel plotting. When I hover a data point, the info widget doesn't show up.
 - Dueal plotting is not working for % based metrics.
 
+Refactoring:
+- Does it make sense to ingest data as strings and then convert to floats?
 
 Ancilliary
 - Select multiple daily upload files in one load, process them 1 by 1

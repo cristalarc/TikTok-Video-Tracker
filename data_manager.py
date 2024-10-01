@@ -140,8 +140,6 @@ class DataManager:
             raise ValueError("Could not extract date from range string")
 
     def filter_videos(self, df):
-        logging.debug(f"Data Types:\n{df.dtypes}") # Remove this later
-        logging.debug(f"Specific Video ID in DataFrame: {df[df['Video ID'] == '7309583706706971946']}") # Remove this later
         # Ensure 'Video ID's in df are strings and stripped of whitespace
 
         df['Video ID'] = df['Video ID'].astype(str).str.strip()
@@ -155,7 +153,7 @@ class DataManager:
         ]
 
         # Log the filtered video IDs
-        logging.debug(f"Filtered Video IDs: {filtered_df['Video ID'].tolist()}")
+        logging.info(f"Filtered Video IDs: {filtered_df['Video ID'].tolist()}")
 
         return filtered_df
 
