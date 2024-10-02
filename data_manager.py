@@ -7,6 +7,7 @@ import shutil
 import json
 import re
 
+# logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class DataManager:

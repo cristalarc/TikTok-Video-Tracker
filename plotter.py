@@ -9,7 +9,12 @@ import matplotlib.dates as mdates
 import numpy as np
 from pandas import DataFrame
 
+# logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Supress unnecesary logging from matplotlib and PIL
+logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
+logging.getLogger('PIL').setLevel(logging.WARNING)
 
 class Plotter:
     def __init__(self):

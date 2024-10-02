@@ -1,22 +1,26 @@
+- Add better plotting capabilities, like agregating data per week and plot multiple variables.
+- Select multiple daily upload files in one load, process them 1 by 1
 - Add a function that detects when videos are growing in views and send a notification to the user.
 - I want the UI to be adaptive of my PC resolution?
-- Add better plotting capabilities, like agregating data per week and plot multiple variables.
 - Improve logging. Add levels and delete unnecesary logging.
+- Add a Help menu with a link to the readme.
 
 Improvements:
+- Settings:
+    Add start of the work week day setting for aggregation.
+- Excel file processor:
+    Automatically detect the date based on the file data.
 -Dynamic Metric Handling: Consider allowing multiple metrics to be plotted simultaneously, not just two.
 -Interactive Plots: Explore adding interactive features like zooming or hovering to see data values using libraries like mplcursors (already used in your code).
 -Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
 
 Bugs:
-- When duel plotting. When I hover a data point, the info widget doesn't show up.
-- Dueal plotting is not working for % based metrics.
 
 Refactoring:
 - Does it make sense to ingest data as strings and then convert to floats?
 
 Ancilliary
-- Select multiple daily upload files in one load, process them 1 by 1
+
 - When I click on a section, like the video details section, that section expands so I an have a better view. Make this a setting.
 - Set threshold for video ingesting. Make this a setting.
 - Database cleanup. When an ingested video has had less than 4000 views for more than X time, stop ingesting video.

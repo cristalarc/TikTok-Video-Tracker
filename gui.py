@@ -7,7 +7,12 @@ from datetime import datetime
 import os
 import webbrowser
 
+# logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Supress unnecesary logging from matplotlib and PIL
+logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
+logging.getLogger('PIL').setLevel(logging.WARNING)
 
 class TikTokTrackerGUI:
     def __init__(self, master):
@@ -101,18 +106,16 @@ class TikTokTrackerGUI:
         self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.create_selected_video_metric_plot)
         self.plot_button.pack(pady=5)
 
-        # Initialize the last performance date
-        latest_date = self.data_manager.get_latest_performance_date()
-        self.last_performance_date.set(f"Last Performance Date: {latest_date}")
-
         # Second metric selection for plotting
         self.metric_var2 = tk.StringVar()
         self.metric_menu2 = ttk.Combobox(self.master, textvariable=self.metric_var2, values=self.metric_options)
         self.metric_menu2.pack(pady=5)
-
-        # New button to plot both metrics
         self.plot_dual_button = ttk.Button(self.master, text="Plot Dual Metrics", command=self.create_selected_video_dual_metric_plot)
         self.plot_dual_button.pack(pady=5)
+
+        # Initialize the last performance date
+        latest_date = self.data_manager.get_latest_performance_date()
+        self.last_performance_date.set(f"Last Performance Date: {latest_date}")
 
         # Show the home page on startup
         self.show_home()
