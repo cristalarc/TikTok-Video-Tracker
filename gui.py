@@ -235,8 +235,23 @@ class TikTokTrackerGUI:
             self.results_tree.insert("", "end", values=result)
 
     def on_video_select(self, event):
-        selected_item = self.results_tree.selection()[0]
+        """
+        Event handler for when a video is selected in the Treeview.
+        Retrieves the selected video's ID and displays its details.
+
+        Parameters:
+        event (tkinter.Event): The event object containing information about the selection event.
+        """
+        selected_items = self.results_tree.selection()
+        if not selected_items:
+            # Selection is empty; no action needed
+            return
+        selected_item = selected_items[0]
+        
+        # Retrieve the video ID from the selected item
         video_id = self.results_tree.item(selected_item)['values'][0]
+        
+        # Display the video details
         self.display_video_details(video_id)
 
     def display_video_details(self, video_id):

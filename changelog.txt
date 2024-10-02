@@ -1,5 +1,7 @@
 [2024-10-02] Enhanced Excel File Upload Functionality
 
+- Fixed a bug in the `on_video_select` method in the `TikTokTrackerGUI` class that trigerred a warning when no video was selected.
+
 - Modified the `upload_file` method in the `TikTokTrackerGUI` class to support multiple file selection:
   - Updated file selection dialog to allow multiple file selection.
   - Implemented batch processing of selected files.
