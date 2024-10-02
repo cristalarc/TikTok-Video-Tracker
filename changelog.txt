@@ -1,3 +1,30 @@
+[2024-10-02] Enhanced Excel File Upload Functionality
+
+- Modified the `upload_file` method in the `TikTokTrackerGUI` class to support multiple file selection:
+  - Updated file selection dialog to allow multiple file selection.
+  - Implemented batch processing of selected files.
+
+- Added a new `process_single_file` method to the `TikTokTrackerGUI` class:
+  - Encapsulates the logic for processing a single Excel file.
+  - Handles data validation, existing data checks, and database insertion.
+
+- Improved error handling and user feedback:
+  - Implemented individual file processing with error catching.
+  - Added a mechanism to skip problematic files and continue with the upload process.
+  - Created a summary report of processed and skipped files.
+
+- Enhanced database backup functionality:
+  - Modified to create a single backup before processing multiple files.
+  - Ensures data integrity while improving efficiency for batch uploads.
+
+- Updated the GUI to reflect changes after batch processing:
+  - Refreshes the last performance date display.
+  - Reloads and displays all videos after processing.
+
+- Improved user notifications:
+  - Added a detailed result message showing processed and skipped files.
+  - Implemented error messaging for unexpected issues during the upload process.
+
 [2024-10-01] Enhanced Dual Metric Plotting and Error Handling
 
 - Improved the `plot_dual_metric` method in the Plotter class:

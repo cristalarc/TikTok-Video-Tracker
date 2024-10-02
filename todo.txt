@@ -1,8 +1,6 @@
 - Add better plotting capabilities, like agregating data per week and plot multiple variables.
-- Select multiple daily upload files in one load, process them 1 by 1
 - Add a function that detects when videos are growing in views and send a notification to the user.
 - I want the UI to be adaptive of my PC resolution?
-- Improve logging. Add levels and delete unnecesary logging.
 - Add a Help menu with a link to the readme.
 
 Improvements:
@@ -31,3 +29,8 @@ Ancilliary
 - Allow me to increase or decrease the area of Video Database Records section, Video Details or Plotting section.
 - Generate Docstrings for all the functions and methods.
 - Color coding. Video IDs need colocr coding when they reach a certain threshold like 50k views. Make this an adjustable setting.
+- Add progress bar for upload_file function when dealing with multi files.
+- For processing single file, add a Yes to All option for replacing data when it already exists.
+- Implemment messagebox threading so the process doesn't freeze when uploading a file.
+    Implement for the process_single_file function.
+- Review database backup calls. There may be too many.
