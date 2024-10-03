@@ -130,7 +130,6 @@ class DataManager:
             raise
 
     def extract_date_from_range(self, date_range):
-        import re
         match = re.search(r'\[Date Range\]: (\d{4}-\d{2}-\d{2}) ~ (\d{4}-\d{2}-\d{2})', date_range)
         if match:
             start_date, end_date = match.groups()
@@ -142,7 +141,6 @@ class DataManager:
 
     def filter_videos(self, df):
         # Ensure 'Video ID's in df are strings and stripped of whitespace
-
         df['Video ID'] = df['Video ID'].astype(str).str.strip()
 
         # Get all existing video IDs from the database as strings and strip whitespace

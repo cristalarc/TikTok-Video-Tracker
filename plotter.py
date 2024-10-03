@@ -33,8 +33,6 @@ class Plotter:
         self.ax = None
 
     def plot_metric(self, data, metric):
-        import numpy as np  # Ensure numpy is imported at the top
-
         if self.fig is None or self.ax is None:
             self.fig, self.ax = plt.subplots(figsize=(10, 6))
         else:
@@ -57,7 +55,6 @@ class Plotter:
                 values = [float(v) if v != '--' else np.nan for v in values]
 
             # Create a DataFrame to handle NaN values
-            from pandas import DataFrame
             df = DataFrame({'Date': dates, 'Value': values}).dropna()
             dates = df['Date']
             values = df['Value']
@@ -132,10 +129,6 @@ class Plotter:
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
     def plot_dual_metric(self, data1, metric1, data2, metric2):
-        from datetime import timedelta
-        import numpy as np
-        from pandas import DataFrame
-
         if self.fig is None or self.ax is None:
             self.fig, self.ax = plt.subplots(figsize=(10, 6))
         else:
