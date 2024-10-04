@@ -15,11 +15,33 @@ class DataManager:
         self.conn = sqlite3.connect(db_path)
         self.create_tables()
         self.migrate_database()
-        self.vv_threshold = self.load_vv_threshold()  # Load threshold from file
+        self.load_settings() # Load all settings
+
+    def load_settings(self):
+        try:
+            with open('settings.json', 'r') as f:
+                settings = json.load(f)
+                self.vv_threshold = settings.get('vv_threshold', 4000)
+                self.week_start = settings.get('week_start', 'Sunday')
+        except FileNotFoundError:
+            self.vv_threshold = 4000
+            self.week_start = 'Sunday'
+
+    def save_settings(self):
+        settings = {
+            'vv_threshold': self.vv_threshold,
+            'week_start': self.week_start
+        }
+        with open('settings.json', 'w') as f:
+            json.dump(settings, f)
 
     def set_vv_threshold(self, threshold):
         self.vv_threshold = threshold
-        self.save_vv_threshold()  # Save threshold to file
+        self.save_settings()
+
+    def set_week_start(self, week_start):
+        self.week_start = week_start
+        self.save_settings()
 
     def save_vv_threshold(self):
         with open('settings.json', 'w') as f:
@@ -254,20 +276,61 @@ class DataManager:
             logging.error(f"Error getting video details: {str(e)}")
             raise
 
-    def get_time_series_data(self, video_id, metric):
+    def get_time_series_data(self, video_id, metric, timeframe='Daily', week_start='Sunday'):
         cursor = self.conn.cursor()
         try:
+            if timeframe == 'Daily':
+                date_format = '%Y-%m-%d'
+                group_by_clause = 'performance_date'
+            elif timeframe == 'Weekly':
+                # Adjust week start day for SQLite (Sunday=0, Monday=1)
+                if week_start == 'Sunday':
+                    start_day = 0
+                else:
+                    start_day = 1
+                # SQLite doesn't support setting the week start day directly, so we'll calculate the week in Python
+                cursor.execute(f'''
+                    SELECT performance_date, {metric}
+                    FROM daily_performance
+                    WHERE video_id = ?
+                    ORDER BY performance_date
+                ''', (video_id,))
+                rows = cursor.fetchall()
+                return self.aggregate_weekly_data(rows, metric, week_start)
+            elif timeframe == 'Monthly':
+                date_format = '%Y-%m'
+                group_by_clause = "strftime('%Y-%m', performance_date)"
+            else:
+                raise ValueError("Invalid timeframe")
+
             cursor.execute(f'''
-                SELECT performance_date, {metric}
+                SELECT {group_by_clause} as period, SUM({metric})
                 FROM daily_performance
                 WHERE video_id = ?
-                GROUP BY performance_date
-                ORDER BY performance_date
+                GROUP BY period
+                ORDER BY period
             ''', (video_id,))
             return cursor.fetchall()
         except Exception as e:
             logging.error(f"Error getting time series data: {str(e)}")
             raise
+
+    def aggregate_weekly_data(self, rows, metric, week_start):
+        import pandas as pd
+
+        data = pd.DataFrame(rows, columns=['performance_date', metric])
+        data['performance_date'] = pd.to_datetime(data['performance_date'])
+
+        # Set week start day
+        week_start_day = 'SUN' if week_start == 'Sunday' else 'MON'
+
+        # Group data by week
+        data.set_index('performance_date', inplace=True)
+        data.index = data.index.to_period('W-' + week_start_day).start_time
+        grouped = data.groupby(data.index).sum().reset_index()
+        grouped['week'] = grouped['performance_date'].dt.strftime('%Y-%m-%d')
+
+        return list(zip(grouped['week'], grouped[metric]))
 
     def clear_data_for_date(self, date):
         self.ensure_connection()

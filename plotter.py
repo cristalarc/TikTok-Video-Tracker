@@ -32,7 +32,7 @@ class Plotter:
         self.fig = None
         self.ax = None
 
-    def plot_metric(self, data, metric):
+    def plot_metric(self, data, metric, timeframe='Daily'):
         if self.fig is None or self.ax is None:
             self.fig, self.ax = plt.subplots(figsize=(10, 6))
         else:
@@ -41,8 +41,12 @@ class Plotter:
         try:
             # Extract dates and values
             dates, values = zip(*data)
+
             # Convert date strings to datetime objects
-            dates = [datetime.strptime(date, '%Y-%m-%d') for date in dates]
+            if timeframe == 'Monthly':
+                dates = [datetime.strptime(date, '%Y-%m') for date in dates]
+            else:
+                dates = [datetime.strptime(date, '%Y-%m-%d') for date in dates]
 
             # Convert values to floats and handle '--' as np.nan
             if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
@@ -84,8 +88,13 @@ class Plotter:
             self.ax.set_ylabel(metric)
             self.ax.set_title(f'{metric} Over Time')
 
-            # Format the X-axis labels
-            self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+            # Adjust X-axis formatter based on timeframe
+            if timeframe == 'Daily':
+                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+            elif timeframe == 'Weekly':
+                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('Week of %Y-%m-%d'))
+            elif timeframe == 'Monthly':
+                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
             # Rotate date labels for better visibility
             plt.setp(self.ax.get_xticklabels(), rotation=45, ha='right')
 
@@ -128,7 +137,7 @@ class Plotter:
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
-    def plot_dual_metric(self, data1, metric1, data2, metric2):
+    def plot_dual_metric(self, data1, metric1, data2, metric2, timeframe='Daily'):
         if self.fig is None or self.ax is None:
             self.fig, self.ax = plt.subplots(figsize=(10, 6))
         else:
@@ -138,7 +147,12 @@ class Plotter:
             # Function to process data
             def process_data(data, metric):
                 dates, values = zip(*data)
-                dates = [datetime.strptime(date, '%Y-%m-%d') for date in dates]
+                # Parse dates based on timeframe
+                if timeframe == 'Monthly':
+                    dates = [datetime.strptime(date, '%Y-%m') for date in dates]
+                else:
+                    dates = [datetime.strptime(date, '%Y-%m-%d') for date in dates]
+                # Process values
                 if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                     values = [float(str(v).strip('%')) / 100 if v != '--' else np.nan for v in values]
                 else:
@@ -174,8 +188,14 @@ class Plotter:
             if metric2 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                 ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
 
-            # Set X-axis formatter
-            self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+            # Adjust X-axis formatter based on timeframe
+            if timeframe == 'Daily':
+                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+            elif timeframe == 'Weekly':
+                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('Week of %Y-%m-%d'))
+            elif timeframe == 'Monthly':
+                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+            # Rotate date labels for better visibility
             plt.setp(self.ax.get_xticklabels(), rotation=45, ha='right')
 
             # Add legends

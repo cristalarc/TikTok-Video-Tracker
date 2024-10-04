@@ -1,11 +1,12 @@
 - Add better plotting capabilities, like agregating data per week and plot multiple variables.
+++ Continue debugging the aggregation.
 - Add a function that detects when videos are growing in views and send a notification to the user.
 - I want the UI to be adaptive of my PC resolution?
 - Add a Help menu with a link to the readme.
 
 Improvements:
 - Settings:
-    Add start of the work week day setting for aggregation.
+    The settings window does not open on the current screen. It opens on the main screen.
 - Excel file processor:
     Automatically detect the date based on the file data.
 -Dynamic Metric Handling: Consider allowing multiple metrics to be plotted simultaneously, not just two.

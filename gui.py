@@ -10,7 +10,7 @@ import webbrowser
 # logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Supress unnecesary logging from matplotlib and PIL
+# Suppress unnecessary logging from matplotlib and PIL
 logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
 logging.getLogger('PIL').setLevel(logging.WARNING)
 
@@ -46,33 +46,44 @@ class TikTokTrackerGUI:
         SettingsWindow(self.master, self.data_manager)
 
     def create_widgets(self):
-        # File upload button
-        self.upload_button = ttk.Button(self.master, text="Upload Excel File", command=self.upload_file)
-        self.upload_button.pack(pady=10, side=tk.LEFT, padx=5)
+        # Create Frames for better layout management
+        self.top_frame = ttk.Frame(self.master)
+        self.top_frame.pack(pady=10, padx=10, fill=tk.X)
 
-        # Clear video performance button
-        self.clear_data_button = ttk.Button(self.master, text="Clear Video Performance", command=self.clear_video_performance)
-        self.clear_data_button.pack(pady=10, side=tk.LEFT, padx=5)
+        self.middle_frame = ttk.Frame(self.master)
+        self.middle_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
-        # Restore Database button
-        self.restore_button = ttk.Button(self.master, text="Restore Database", command=self.restore_database)
-        self.restore_button.pack(pady=10, side=tk.LEFT, padx=5)
+        self.bottom_frame = ttk.Frame(self.master)
+        self.bottom_frame.pack(pady=10, padx=10, fill=tk.X)
 
-        # Search bar
+        # Top Frame Widgets
+        self.upload_button = ttk.Button(self.top_frame, text="Upload Excel File", command=self.upload_file)
+        self.upload_button.pack(side=tk.LEFT, padx=5)
+
+        self.clear_data_button = ttk.Button(self.top_frame, text="Clear Video Performance", command=self.clear_video_performance)
+        self.clear_data_button.pack(side=tk.LEFT, padx=5)
+
+        self.restore_button = ttk.Button(self.top_frame, text="Restore Database", command=self.restore_database)
+        self.restore_button.pack(side=tk.LEFT, padx=5)
+
+        # Search Bar
         self.search_var = tk.StringVar()
-        self.search_entry = ttk.Entry(self.master, textvariable=self.search_var, width=50)
-        self.search_entry.pack(pady=5)
-        self.search_button = ttk.Button(self.master, text="Search", command=self.search_videos)
-        self.search_button.pack(pady=5)
+        self.search_entry = ttk.Entry(self.top_frame, textvariable=self.search_var, width=50)
+        self.search_entry.pack(side=tk.LEFT, padx=5)
 
-        # Last Performance Date label
+        self.search_button = ttk.Button(self.top_frame, text="Search", command=self.search_videos)
+        self.search_button.pack(side=tk.LEFT, padx=5)
+
+        # Last Performance Date
         self.last_performance_date = tk.StringVar()
-        self.last_performance_date_label = ttk.Label(self.master, textvariable=self.last_performance_date)
-        self.last_performance_date_label.pack(anchor='ne', padx=10, pady=5)
+        self.last_performance_date_label = ttk.Label(self.top_frame, textvariable=self.last_performance_date)
+        self.last_performance_date_label.pack(side=tk.RIGHT, padx=5)
 
-        # Search results
-        self.results_frame = ttk.LabelFrame(self.master, text="Video Database Records")
-        self.results_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        # Middle Frame Widgets
+        # Results Frame
+        self.results_frame = ttk.LabelFrame(self.middle_frame, text="Video Database Records")
+        self.results_frame.pack(side=tk.LEFT, padx=10, pady=5, fill=tk.BOTH, expand=True)
+
         columns = ("Video ID", "Video Info", "Date", "Creator", "Products", "Views", "Shares", "Video Revenue ($)")
         self.results_tree = ttk.Treeview(self.results_frame, columns=columns, show="headings")
 
@@ -81,6 +92,7 @@ class TikTokTrackerGUI:
             self.results_tree.column(col, width=100)
 
         self.results_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
         self.results_scrollbar = ttk.Scrollbar(self.results_frame, orient=tk.VERTICAL, command=self.results_tree.yview)
         self.results_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.results_tree.configure(yscrollcommand=self.results_scrollbar.set)
@@ -88,37 +100,54 @@ class TikTokTrackerGUI:
         self.create_context_menu()
         self.results_tree.bind("<Button-3>", self.show_context_menu)
 
-        # Video details
-        self.details_frame = ttk.LabelFrame(self.master, text="Video Details")
-        self.details_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        # Details Frame
+        self.details_frame = ttk.LabelFrame(self.middle_frame, text="Video Details")
+        self.details_frame.pack(side=tk.RIGHT, padx=10, pady=5, fill=tk.BOTH, expand=True)
+
         self.details_text = tk.Text(self.details_frame, height=10, wrap=tk.WORD)
         self.details_text.pack(fill=tk.BOTH, expand=True)
 
-        # Metric selection for plotting
+        # Bottom Frame Widgets
+        # Timeframe Selection
+        self.timeframe_var = tk.StringVar(value='Daily')
+        self.timeframe_options = ['Daily', 'Weekly', 'Monthly']
+        ttk.Label(self.bottom_frame, text="Select Timeframe:").pack(side=tk.LEFT, padx=5)
+        self.timeframe_menu = ttk.Combobox(self.bottom_frame, textvariable=self.timeframe_var, values=self.timeframe_options, state='readonly')
+        self.timeframe_menu.pack(side=tk.LEFT, padx=5)
+
+        # Metric Selection
         self.metric_var = tk.StringVar()
         self.metric_options = [
             'VV', 'Likes', 'Comments', 'Shares', 'Product Impressions', 
             'Product Clicks', 'Orders', 'Unit Sales', 'Video Revenue ($)', 
             'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR'
         ]
-        self.metric_menu = ttk.Combobox(self.master, textvariable=self.metric_var, values=self.metric_options)
-        self.metric_menu.pack(pady=5)
-        self.plot_button = ttk.Button(self.master, text="Plot Metric", command=self.create_selected_video_metric_plot)
-        self.plot_button.pack(pady=5)
+        ttk.Label(self.bottom_frame, text="Select Metric:").pack(side=tk.LEFT, padx=5)
+        self.metric_menu = ttk.Combobox(self.bottom_frame, textvariable=self.metric_var, values=self.metric_options, state='readonly')
+        self.metric_menu.pack(side=tk.LEFT, padx=5)
+        self.plot_button = ttk.Button(self.bottom_frame, text="Plot Metric", command=self.create_selected_video_metric_plot)
+        self.plot_button.pack(side=tk.LEFT, padx=5)
 
-        # Second metric selection for plotting
+        # Second Metric Selection for Dual Plotting
         self.metric_var2 = tk.StringVar()
-        self.metric_menu2 = ttk.Combobox(self.master, textvariable=self.metric_var2, values=self.metric_options)
-        self.metric_menu2.pack(pady=5)
-        self.plot_dual_button = ttk.Button(self.master, text="Plot Dual Metrics", command=self.create_selected_video_dual_metric_plot)
-        self.plot_dual_button.pack(pady=5)
+        ttk.Label(self.bottom_frame, text="Select Second Metric:").pack(side=tk.LEFT, padx=5)
+        self.metric_menu2 = ttk.Combobox(self.bottom_frame, textvariable=self.metric_var2, values=self.metric_options, state='readonly')
+        self.metric_menu2.pack(side=tk.LEFT, padx=5)
+        self.plot_dual_button = ttk.Button(self.bottom_frame, text="Plot Dual Metrics", command=self.create_selected_video_dual_metric_plot)
+        self.plot_dual_button.pack(side=tk.LEFT, padx=5)
 
         # Initialize the last performance date
         latest_date = self.data_manager.get_latest_performance_date()
         self.last_performance_date.set(f"Last Performance Date: {latest_date}")
 
-        # Show the home page on startup
-        self.show_home()
+    def show_home(self):
+        # Clear any widgets from other pages
+        self.clear_page()
+
+        # Show all widgets related to the home page
+        self.top_frame.pack(pady=10, padx=10, fill=tk.X)
+        self.middle_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        self.bottom_frame.pack(pady=10, padx=10, fill=tk.X)
 
     def create_context_menu(self):
         self.context_menu = tk.Menu(self.master, tearoff=0)
@@ -330,15 +359,85 @@ class TikTokTrackerGUI:
         
         # Clear existing plot and widgets
         self.plotter.clear_plot()
-        
-        data = self.data_manager.get_time_series_data(video_id, db_metric)
+
+        # Get the selected timeframe
+        timeframe = self.timeframe_var.get()
+
+        # Get week start setting from data_manager
+        week_start = self.data_manager.week_start
+
+        # Fetch data with the selected timeframe
+        data = self.data_manager.get_time_series_data(video_id, db_metric, timeframe=timeframe, week_start=week_start)
         logging.info(f"Data retrieved for plotting: {data}")
-        
         if not data:
-            messagebox.showwarning("Warning", "No data available for the selected metric.")
+            messagebox.showwarning("Warning", "No data available for the selected metric and timeframe.")
             return
         
-        self.plotter.plot_metric(data, metric)
+        # Plot the data with the selected timeframe
+        self.plotter.plot_metric(data, metric, timeframe=timeframe)
+        self.plotter.embed_plot(self.master)
+
+    def create_selected_video_dual_metric_plot(self):
+        selected_items = self.results_tree.selection()
+        if not selected_items:
+            messagebox.showwarning("Warning", "Please select a video to plot.")
+            return
+
+        video_id = self.results_tree.item(selected_items[0])['values'][0]
+        metric1 = self.metric_var.get()
+        metric2 = self.metric_var2.get()
+
+        if not metric1 or not metric2:
+            messagebox.showwarning("Warning", "Please select both metrics to plot.")
+            return
+
+        if metric1 == metric2:
+            messagebox.showwarning("Warning", "Please select two different metrics to plot.")
+            return
+
+        # Convert display metric names to database column names
+        metric_mapping = {
+            'VV': 'vv',
+            'Likes': 'likes',
+            'Comments': 'comments',
+            'Shares': 'shares',
+            'Product Impressions': 'product_impressions',
+            'Product Clicks': 'product_clicks',
+            'Orders': 'orders',
+            'Unit Sales': 'unit_sales',
+            'Video Revenue ($)': 'video_revenue',
+            'CTR': 'ctr',
+            'V-to-L rate': 'v_to_l_rate',
+            'Video Finish Rate': 'video_finish_rate',
+            'CTOR': 'ctor'
+        }
+
+        db_metric1 = metric_mapping.get(metric1)
+        db_metric2 = metric_mapping.get(metric2)
+
+        if not db_metric1 or not db_metric2:
+            messagebox.showwarning("Warning", "Invalid metrics selected.")
+            return
+
+        # Clear existing plot and widgets
+        self.plotter.clear_plot()
+
+        # Get the selected timeframe
+        timeframe = self.timeframe_var.get()
+
+        # Get week start setting from data_manager
+        week_start = self.data_manager.week_start
+
+        # Fetch data with the selected timeframe
+        data1 = self.data_manager.get_time_series_data(video_id, db_metric1, timeframe=timeframe, week_start=week_start)
+        data2 = self.data_manager.get_time_series_data(video_id, db_metric2, timeframe=timeframe, week_start=week_start)
+        logging.info(f"Data retrieved for plotting: data1={data1}, data2={data2}")
+        if not data1 or not data2:
+            messagebox.showwarning("Warning", "No data available for the selected metrics and timeframe.")
+            return
+        
+        # Plot the data with the selected timeframe
+        self.plotter.plot_dual_metric(data1, metric1, data2, metric2, timeframe=timeframe)
         self.plotter.embed_plot(self.master)
 
     def plot_metric_from_context(self, metric):
@@ -437,24 +536,6 @@ class TikTokTrackerGUI:
 
         tv.heading(col, command=lambda: self.treeview_sort_column(tv, col, not reverse))
     
-    def show_home(self):
-        # Clear any widgets from other pages
-        self.clear_page()
-
-        # Show all widgets related to the home page
-        self.upload_button.pack(pady=10, side=tk.LEFT, padx=5)
-        self.clear_data_button.pack(pady=10, side=tk.LEFT, padx=5)
-        self.restore_button.pack(pady=10, side=tk.LEFT, padx=5)
-        self.search_entry.pack(pady=5)
-        self.search_button.pack(pady=5)
-        self.last_performance_date_label.pack(anchor='ne', padx=10, pady=5)
-        self.results_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
-        self.details_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
-        self.metric_menu.pack(pady=5)
-        self.plot_button.pack(pady=5)
-        self.metric_menu2.pack(pady=5)
-        self.plot_dual_button.pack(pady=5)
-
     def show_trending(self):
         # Clear any widgets from other pages
         self.clear_page()
@@ -472,63 +553,6 @@ class TikTokTrackerGUI:
         if self.trending_label:
             self.trending_label.destroy()
             self.trending_label = None
-    
-    def create_selected_video_dual_metric_plot(self):
-        selected_items = self.results_tree.selection()
-        if not selected_items:
-            messagebox.showwarning("Warning", "Please select a video to plot.")
-            return
-
-        video_id = self.results_tree.item(selected_items[0])['values'][0]
-        metric1 = self.metric_var.get()
-        metric2 = self.metric_var2.get()
-
-        if not metric1 or not metric2:
-            messagebox.showwarning("Warning", "Please select both metrics to plot.")
-            return
-
-        if metric1 == metric2:
-            messagebox.showwarning("Warning", "Please select two different metrics to plot.")
-            return
-
-        # Convert display metric names to database column names
-        metric_mapping = {
-            'VV': 'vv',
-            'Likes': 'likes',
-            'Comments': 'comments',
-            'Shares': 'shares',
-            'Product Impressions': 'product_impressions',
-            'Product Clicks': 'product_clicks',
-            'Orders': 'orders',
-            'Unit Sales': 'unit_sales',
-            'Video Revenue ($)': 'video_revenue',
-            'CTR': 'ctr',
-            'V-to-L rate': 'v_to_l_rate',
-            'Video Finish Rate': 'video_finish_rate',
-            'CTOR': 'ctor'
-        }
-
-        db_metric1 = metric_mapping.get(metric1)
-        db_metric2 = metric_mapping.get(metric2)
-
-        if not db_metric1 or not db_metric2:
-            messagebox.showwarning("Warning", "Invalid metrics selected.")
-            return
-
-        # Clear existing plot and widgets
-        self.plotter.clear_plot()
-
-        data1 = self.data_manager.get_time_series_data(video_id, db_metric1)
-        data2 = self.data_manager.get_time_series_data(video_id, db_metric2)
-        logging.info(f"Data retrieved for plotting: data1={data1}, data2={data2}")
-
-        if not data1 or not data2:
-            messagebox.showwarning("Warning", "No data available for the selected metrics.")
-            return
-
-        # Plot both metrics
-        self.plotter.plot_dual_metric(data1, metric1, data2, metric2)
-        self.plotter.embed_plot(self.master)
 
 class SettingsWindow(tk.Toplevel):
     def __init__(self, parent, data_manager):
@@ -536,19 +560,36 @@ class SettingsWindow(tk.Toplevel):
         self.title("Settings")
         self.data_manager = data_manager
         self.create_widgets_settings()
-
+        
     def create_widgets_settings(self):
+        # Video View Ingestion Threshold setting
         ttk.Label(self, text="Video View Ingestion Threshold:").grid(row=0, column=0, padx=5, pady=5)
         self.threshold_var = tk.StringVar(value=str(self.data_manager.vv_threshold))
         ttk.Entry(self, textvariable=self.threshold_var).grid(row=0, column=1, padx=5, pady=5)
-        ttk.Button(self, text="Save", command=self.save_settings).grid(row=1, column=0, columnspan=2, pady=10)
+
+        # Week Start Day setting
+        ttk.Label(self, text="Week Starts On:").grid(row=1, column=0, padx=5, pady=5)
+        self.week_start_var = tk.StringVar(value=self.data_manager.week_start)
+        self.week_start_options = ['Sunday', 'Monday']
+        ttk.Combobox(self, textvariable=self.week_start_var, values=self.week_start_options, state='readonly').grid(row=1, column=1, padx=5, pady=5)
+
+        # Save button
+        ttk.Button(self, text="Save", command=self.save_settings).grid(row=2, column=0, columnspan=2, pady=10)
 
     def save_settings(self):
         try:
+            # Saving Video View Ingestion Threshold
             new_threshold = int(self.threshold_var.get())
             if new_threshold <= 0:
                 raise ValueError("Threshold must be a positive integer")
             self.data_manager.set_vv_threshold(new_threshold)
+
+            # Saving Week Start Day
+            new_week_start = self.week_start_var.get()
+            if new_week_start not in ['Sunday', 'Monday']:
+                raise ValueError("Week start day must be 'Sunday' or 'Monday'")
+            self.data_manager.set_week_start(new_week_start)
+
             messagebox.showinfo("Success", "Settings saved successfully")
             self.destroy()
         except ValueError as e:
