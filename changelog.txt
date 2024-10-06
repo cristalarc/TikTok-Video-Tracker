@@ -1,3 +1,15 @@
+[2024-10-06] Settings Window Improvements
+
+- Settings window now opens on the same screen as the main application window.
+- Settings window is modal, so it requires the user to close it before interacting with the application again.
+- Settings window is transient, so it opens on top of the main application window.
+
+[2024-10-04] Added First step of Plotting aggregation
+
+- Implemented a new method in the `Plotter` class to aggregate data for a selected video over a specified time range.
+- Added a new button in the `TikTokTrackerGUI` class to trigger this aggregation and plotting.
+- Updated the GUI to include a time range selection dropdown for the aggregation.
+
 [2024-10-02] Enhanced Excel File Upload Functionality
 
 - Fixed a bug in the `on_video_select` method in the `TikTokTrackerGUI` class that trigerred a warning when no video was selected.

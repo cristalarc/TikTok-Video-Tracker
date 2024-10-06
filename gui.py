@@ -561,6 +561,15 @@ class SettingsWindow(tk.Toplevel):
         self.data_manager = data_manager
         self.create_widgets_settings()
         
+        # Make this window transient for the parent window
+        self.transient(parent)
+        
+        # Set the window position relative to the parent window
+        self.geometry(f"+{parent.winfo_x() + 50}+{parent.winfo_y() + 50}")
+        
+        # Make the window modal
+        self.grab_set()
+        
     def create_widgets_settings(self):
         # Video View Ingestion Threshold setting
         ttk.Label(self, text="Video View Ingestion Threshold:").grid(row=0, column=0, padx=5, pady=5)
