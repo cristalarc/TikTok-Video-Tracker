@@ -3,10 +3,10 @@
 - Add a function that detects when videos are growing in views and send a notification to the user.
 - I want the UI to be adaptive of my PC resolution?
 - Add a Help menu with a link to the readme.
+    Include a glossary of metrics.
+    Include a description of every dashboard?
 
 Improvements:
-- Settings:
-    The settings window does not open on the current screen. It opens on the main screen.
 - Excel file processor:
     Automatically detect the date based on the file data.
 -Dynamic Metric Handling: Consider allowing multiple metrics to be plotted simultaneously, not just two.
@@ -14,6 +14,15 @@ Improvements:
 -Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
 
 Bugs:
+Plotting:
+    Weekly aggregation of % based metrics doesn't work when there's more than one data point for the week.
+    Weekly aggregation of metrics doesn't work for dual plotting.
+        7415046214607015199 the X axis is messed up.
+        7411141940038733087 works except for the X axis plotting.
+
+To Test:
+    Monthly aggregation plotting.
+    See if week start is influencing plotting.
 
 Refactoring:
 - Does it make sense to ingest data as strings and then convert to floats?
@@ -34,4 +43,4 @@ Ancilliary
 - For processing single file, add a Yes to All option for replacing data when it already exists.
 - Implemment messagebox threading so the process doesn't freeze when uploading a file.
     Implement for the process_single_file function.
-- Review database backup calls. There may be too many.
+- Review database backup calls/generations. There may be too many.

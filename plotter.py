@@ -115,7 +115,7 @@ class Plotter:
 
             # Function to format annotations
             def format_annotation(sel):
-                index = sel.target.index
+                index = sel.index
                 date = dates.iloc[index].strftime('%Y-%m-%d')
                 value = values.iloc[index]
                 if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
@@ -138,11 +138,12 @@ class Plotter:
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
     def plot_dual_metric(self, data1, metric1, data2, metric2, timeframe='Daily'):
+        # Initialize figure and axis
         if self.fig is None or self.ax is None:
             self.fig, self.ax = plt.subplots(figsize=(10, 6))
         else:
             self.ax.clear()
-
+        
         try:
             # Function to process data
             def process_data(data, metric):
@@ -163,10 +164,13 @@ class Plotter:
             dates1, values1 = process_data(data1, metric1)
             dates2, values2 = process_data(data2, metric2)
 
-            # Create DataFrames and join
+            # Create DataFrames and join on dates
             df1 = DataFrame({'Date': dates1, metric1: values1}).set_index('Date')
             df2 = DataFrame({'Date': dates2, metric2: values2}).set_index('Date')
             df = df1.join(df2, how='outer').sort_index()
+
+            # Drop rows where both metrics are NaN
+            df.dropna(how='all', inplace=True)
 
             # Plot metric1
             self.ax.plot(df.index, df[metric1], color='blue', marker='o', label=metric1)
@@ -178,7 +182,7 @@ class Plotter:
             if metric1 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                 self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
 
-            # Create a second y-axis
+            # Create a second y-axis for metric2
             ax2 = self.ax.twinx()
             ax2.plot(df.index, df[metric2], color='red', marker='s', label=metric2)
             ax2.set_ylabel(metric2, color='red')
@@ -188,21 +192,29 @@ class Plotter:
             if metric2 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                 ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
 
-            # Adjust X-axis formatter based on timeframe
+            # Set x-axis ticks to the dates in your data
+            self.ax.set_xticks(df.index)
+
+            # Format x-axis labels based on timeframe
             if timeframe == 'Daily':
-                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+                date_format = '%Y-%m-%d'
             elif timeframe == 'Weekly':
-                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('Week of %Y-%m-%d'))
+                date_format = 'Week of %Y-%m-%d'
             elif timeframe == 'Monthly':
-                self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+                date_format = '%Y-%m'
+            else:
+                date_format = '%Y-%m-%d'  # Default format
+
+            self.ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))
+
             # Rotate date labels for better visibility
             plt.setp(self.ax.get_xticklabels(), rotation=45, ha='right')
 
-            # Add legends
-            self.fig.legend(loc='upper left')
-
             # Adjust layout to prevent overlap
             self.fig.tight_layout()
+
+            # Add legends
+            self.fig.legend(loc='upper left')
 
             # Add interactive cursor
             scatter1 = self.ax.scatter(df.index, df[metric1], color='blue', marker='o')
@@ -211,23 +223,28 @@ class Plotter:
 
             @cursor.connect("add")
             def on_add(sel):
+                # Use sel.index instead of sel.target.index
                 index = sel.index
-                date = df.index[index].strftime("%Y-%m-%d")
+                date = df.index[index]
                 value1 = df[metric1].iloc[index]
                 value2 = df[metric2].iloc[index]
-                
+
+                # Format date string
+                date_str = date.strftime(date_format)
+
+                # Format values
                 if metric1 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                     value1_str = f'{value1:.2%}' if not np.isnan(value1) else '--'
                 else:
                     value1_str = f'{value1:.2f}' if not np.isnan(value1) else '--'
-                
+
                 if metric2 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                     value2_str = f'{value2:.2%}' if not np.isnan(value2) else '--'
                 else:
                     value2_str = f'{value2:.2f}' if not np.isnan(value2) else '--'
-                
-                sel.annotation.set_text(f'Date: {date}\n{metric1}: {value1_str}\n{metric2}: {value2_str}')
+
+                sel.annotation.set_text(f'Date: {date_str}\n{metric1}: {value1_str}\n{metric2}: {value2_str}')
 
         except Exception as e:
             logging.error(f"Error in plot_dual_metric: {str(e)}")
-            raise
+            messagebox.showerror("Error", f"An error occurred while plotting dual metrics: {str(e)}")

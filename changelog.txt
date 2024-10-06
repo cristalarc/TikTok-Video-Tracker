@@ -1,3 +1,28 @@
+[2024-10-06] Dual Plotting Improvements and Bug Fixes
+
+- Enhanced the `plot_dual_metric` method in the `Plotter` class to address x-axis labeling issues:
+  - Modified x-axis tick placement to only show dates present in the data.
+  - Implemented dynamic date formatting based on the selected timeframe (Daily, Weekly, Monthly).
+  - Added rotation to x-axis labels for improved readability.
+
+- Updated the handling of the interactive cursor in both `plot_dual_metric` and `plot_metric` methods:
+  - Replaced deprecated `sel.target.index` with `sel.index` to resolve deprecation warnings from the mplcursors library.
+  - Improved tooltip formatting to display correct date and value information.
+
+- Refined data processing in `plot_dual_metric`:
+  - Implemented better handling of NaN values and data alignment between two metrics.
+  - Enhanced date parsing to support different timeframe aggregations.
+
+- Improved overall plot appearance:
+  - Added proper legends for dual metric plots.
+  - Implemented `tight_layout()` to prevent label overlapping.
+
+- Code Refactoring:
+  - Consolidated similar code patterns in `plot_metric` and `plot_dual_metric` methods.
+  - Improved error handling and logging for better debugging.
+
+- These changes resolve issues with unnecessary x-axis labels, improve the accuracy of data representation, and enhance the overall user experience when interacting with plots.
+
 [2024-10-06] Settings Window Improvements
 
 - Settings window now opens on the same screen as the main application window.
