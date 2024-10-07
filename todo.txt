@@ -16,16 +16,15 @@ Improvements:
 Bugs:
 Plotting:
     Weekly aggregation of % based metrics doesn't work when there's more than one data point for the week.
-    Weekly aggregation of metrics doesn't work for dual plotting.
-        7415046214607015199 the X axis is messed up.
-        7411141940038733087 works except for the X axis plotting.
-
+Data:
+    New ingestion transforms % based metrics to float. Need to transform them back to % for plotting.
 To Test:
     Monthly aggregation plotting.
     See if week start is influencing plotting.
 
 Refactoring:
 - Does it make sense to ingest data as strings and then convert to floats?
+- Consolidate library imports.
 
 Ancilliary
 

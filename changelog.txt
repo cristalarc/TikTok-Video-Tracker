@@ -1,3 +1,8 @@
+[2024-10-07] Improve Ingestion Data Transformation
+
+- Implemented a new method in the `DataManager` class to transform percentage fields back to strings with a % sign.
+- Updated the `upload_file` method to apply this transformation to the DataFrame before inserting the data into the database.
+
 [2024-10-06] Dual Plotting Improvements and Bug Fixes
 
 - Enhanced the `plot_dual_metric` method in the `Plotter` class to address x-axis labeling issues:

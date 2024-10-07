@@ -6,6 +6,8 @@ import os
 import shutil
 import json
 import re
+import numpy as np
+
 
 # logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -191,6 +193,9 @@ class DataManager:
     def insert_or_update_records(self, df):
         cursor = self.conn.cursor()
         try:
+            # Clean the percentage fields
+            df = self.clean_percentage_fields(df)
+
             for _, row in df.iterrows():
                 # Check if the video already exists
                 cursor.execute("SELECT 1 FROM videos WHERE video_id = ?", (row['Video ID'],))
@@ -440,4 +445,14 @@ class DataManager:
         except Exception as e:
             logging.error(f"Error getting latest performance date: {str(e)}")
             return "N/A"
+        
+    def clean_percentage_fields(self, df):
+        """
+        Converts percentage strings to floats in the DataFrame.
+        """
+        percentage_fields = ['CTR', 'CTOR', 'V-to-L rate', 'Video Finish Rate']
+        for field in percentage_fields:
+            df[field] = df[field].replace('--', np.nan)
+            df[field] = df[field].str.rstrip('%').astype('float')
+        return df
 
