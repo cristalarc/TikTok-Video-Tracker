@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import matplotlib.dates as mdates
 import numpy as np
 from pandas import DataFrame
+import pandas as pd
 
 # logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -42,21 +43,16 @@ class Plotter:
             # Extract dates and values
             dates, values = zip(*data)
 
-            # Convert date strings to datetime objects
-            if timeframe == 'Monthly':
-                dates = [datetime.strptime(date, '%Y-%m') for date in dates]
+            # Ensure dates are datetime objects
+            if isinstance(dates[0], str):
+                # If dates are strings, parse them
+                dates = [pd.to_datetime(date) for date in dates]
             else:
-                dates = [datetime.strptime(date, '%Y-%m-%d') for date in dates]
+                # If dates are already Timestamps, just convert to list
+                dates = list(dates)
 
             # Convert values to floats and handle '--' as np.nan
-            if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
-                # Remove '%' if present and convert to float
-                values = [
-                    float(str(v).strip('%')) / 100 if v != '--' else np.nan
-                    for v in values
-                ]
-            else:
-                values = [float(v) if v != '--' else np.nan for v in values]
+            values = [v if v is not None else np.nan for v in values]
 
             # Create a DataFrame to handle NaN values
             df = DataFrame({'Date': dates, 'Value': values}).dropna()
@@ -101,6 +97,8 @@ class Plotter:
             # Format Y-axis for percentage metrics
             if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                 self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
+            else:
+                self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.2f}'))
 
             # Set Y-axis limits with some padding
             y_min = 0
@@ -121,7 +119,7 @@ class Plotter:
                 if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                     value_str = f'{value:.2%}' if not np.isnan(value) else '--'
                 else:
-                    value_str = f'{value}' if not np.isnan(value) else '--'
+                    value_str = f'{value:.2f}' if not np.isnan(value) else '--'
                 return f'Date: {date}\n{metric}: {value_str}'
 
             cursor.connect("add", lambda sel: sel.annotation.set_text(format_annotation(sel)))
@@ -146,23 +144,20 @@ class Plotter:
         
         try:
             # Function to process data
-            def process_data(data, metric):
+            def process_data(data):
                 dates, values = zip(*data)
-                # Parse dates based on timeframe
-                if timeframe == 'Monthly':
-                    dates = [datetime.strptime(date, '%Y-%m') for date in dates]
+                # Ensure dates are datetime objects
+                if isinstance(dates[0], str):
+                    dates = [pd.to_datetime(date) for date in dates]
                 else:
-                    dates = [datetime.strptime(date, '%Y-%m-%d') for date in dates]
-                # Process values
-                if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
-                    values = [float(str(v).strip('%')) / 100 if v != '--' else np.nan for v in values]
-                else:
-                    values = [float(v) if v != '--' else np.nan for v in values]
+                    dates = list(dates)  # Convert to list if already Timestamps
+                # Handle None or NaN values in values
+                values = [v if v is not None else np.nan for v in values]
                 return dates, values
 
             # Process data for both metrics
-            dates1, values1 = process_data(data1, metric1)
-            dates2, values2 = process_data(data2, metric2)
+            dates1, values1 = process_data(data1)
+            dates2, values2 = process_data(data2)
 
             # Create DataFrames and join on dates
             df1 = DataFrame({'Date': dates1, metric1: values1}).set_index('Date')
@@ -171,6 +166,11 @@ class Plotter:
 
             # Drop rows where both metrics are NaN
             df.dropna(how='all', inplace=True)
+
+            # Check if there's data to plot after dropping NaNs
+            if df.empty:
+                messagebox.showwarning("Warning", "No valid data to plot.")
+                return
 
             # Plot metric1
             self.ax.plot(df.index, df[metric1], color='blue', marker='o', label=metric1)
@@ -181,6 +181,8 @@ class Plotter:
             # Format y-axis for metric1 if it's a percentage
             if metric1 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                 self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
+            else:
+                self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.2f}'))
 
             # Create a second y-axis for metric2
             ax2 = self.ax.twinx()
@@ -191,6 +193,8 @@ class Plotter:
             # Format y-axis for metric2 if it's a percentage
             if metric2 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
                 ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
+            else:
+                ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.2f}'))
 
             # Set x-axis ticks to the dates in your data
             self.ax.set_xticks(df.index)
@@ -221,16 +225,12 @@ class Plotter:
             scatter2 = ax2.scatter(df.index, df[metric2], color='red', marker='s')
             cursor = mplcursors.cursor([scatter1, scatter2], hover=True)
 
-            @cursor.connect("add")
-            def on_add(sel):
-                # Use sel.index instead of sel.target.index
-                index = sel.index
-                date = df.index[index]
+            # Function to format annotations
+            def format_annotation(sel):
+                index = sel.target.index
+                date = df.index[index].strftime('%Y-%m-%d')
                 value1 = df[metric1].iloc[index]
                 value2 = df[metric2].iloc[index]
-
-                # Format date string
-                date_str = date.strftime(date_format)
 
                 # Format values
                 if metric1 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
@@ -243,7 +243,9 @@ class Plotter:
                 else:
                     value2_str = f'{value2:.2f}' if not np.isnan(value2) else '--'
 
-                sel.annotation.set_text(f'Date: {date_str}\n{metric1}: {value1_str}\n{metric2}: {value2_str}')
+                return f'Date: {date}\n{metric1}: {value1_str}\n{metric2}: {value2_str}'
+
+            cursor.connect("add", lambda sel: sel.annotation.set_text(format_annotation(sel)))
 
         except Exception as e:
             logging.error(f"Error in plot_dual_metric: {str(e)}")

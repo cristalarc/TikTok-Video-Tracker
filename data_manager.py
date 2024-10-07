@@ -284,16 +284,19 @@ class DataManager:
     def get_time_series_data(self, video_id, metric, timeframe='Daily', week_start='Sunday'):
         cursor = self.conn.cursor()
         try:
+            # Check if the metric is one that requires custom aggregation
+            if metric == 'ctr':
+                return self.aggregate_ctr(video_id, timeframe, week_start)
+            elif metric == 'ctor':
+                return self.aggregate_ctor(video_id, timeframe, week_start)
+            elif metric in ['v_to_l_rate', 'video_finish_rate']:
+                return self.aggregate_simple_average(video_id, metric, timeframe, week_start)
+            
+            # For non-percentage metrics, proceed with standard aggregation
             if timeframe == 'Daily':
-                date_format = '%Y-%m-%d'
                 group_by_clause = 'performance_date'
             elif timeframe == 'Weekly':
-                # Adjust week start day for SQLite (Sunday=0, Monday=1)
-                if week_start == 'Sunday':
-                    start_day = 0
-                else:
-                    start_day = 1
-                # SQLite doesn't support setting the week start day directly, so we'll calculate the week in Python
+                # Fetch data and aggregate weekly
                 cursor.execute(f'''
                     SELECT performance_date, {metric}
                     FROM daily_performance
@@ -303,11 +306,10 @@ class DataManager:
                 rows = cursor.fetchall()
                 return self.aggregate_weekly_data(rows, metric, week_start)
             elif timeframe == 'Monthly':
-                date_format = '%Y-%m'
                 group_by_clause = "strftime('%Y-%m', performance_date)"
             else:
                 raise ValueError("Invalid timeframe")
-
+            
             cursor.execute(f'''
                 SELECT {group_by_clause} as period, SUM({metric})
                 FROM daily_performance
@@ -456,3 +458,64 @@ class DataManager:
             df[field] = df[field].str.rstrip('%').astype('float')
         return df
 
+    def aggregate_ctr(self, video_id, timeframe, week_start):
+        """
+        Calculates CTR as (Sum of Product Clicks) / (Sum of VV) over the specified timeframe.
+        """
+        data = self.get_aggregation_data(video_id, ['product_clicks', 'vv'], timeframe, week_start)
+        result = []
+        for period, group in data.groupby('period'):
+            total_clicks = group['product_clicks'].sum()
+            total_vv = group['vv'].sum()
+            ctr = (total_clicks / total_vv) if total_vv else np.nan
+            result.append((period, ctr))
+        return result
+
+    def aggregate_ctor(self, video_id, timeframe, week_start):
+        """
+        Calculates CTOR as (Sum of Orders) / (Sum of Product Clicks) over the specified timeframe.
+        """
+        data = self.get_aggregation_data(video_id, ['orders', 'product_clicks'], timeframe, week_start)
+        result = []
+        for period, group in data.groupby('period'):
+            total_orders = group['orders'].sum()
+            total_clicks = group['product_clicks'].sum()
+            ctor = (total_orders / total_clicks) if total_clicks else np.nan
+            result.append((period, ctor))
+        return result
+
+    def aggregate_simple_average(self, video_id, metric, timeframe, week_start):
+        """
+        Calculates the simple average of the given metric over the specified timeframe.
+        """
+        data = self.get_aggregation_data(video_id, [metric], timeframe, week_start)
+        result = []
+        for period, group in data.groupby('period'):
+            avg_metric = group[metric].mean()
+            result.append((period, avg_metric))
+        return result
+
+    def get_aggregation_data(self, video_id, columns, timeframe, week_start):
+        """
+        Retrieves data and prepares it for aggregation.
+        """
+        cursor = self.conn.cursor()
+        columns_str = ', '.join(columns)
+        cursor.execute(f'''
+            SELECT performance_date, {columns_str}
+            FROM daily_performance
+            WHERE video_id = ?
+            ORDER BY performance_date
+        ''', (video_id,))
+        rows = cursor.fetchall()
+        df = pd.DataFrame(rows, columns=['performance_date'] + columns)
+        df['performance_date'] = pd.to_datetime(df['performance_date'])
+
+        if timeframe == 'Weekly':
+            week_start_day = 'SUN' if week_start == 'Sunday' else 'MON'
+            df['period'] = df['performance_date'].dt.to_period('W-' + week_start_day).dt.start_time
+        elif timeframe == 'Monthly':
+            df['period'] = df['performance_date'].dt.to_period('M').dt.start_time
+        else:
+            df['period'] = df['performance_date']
+        return df

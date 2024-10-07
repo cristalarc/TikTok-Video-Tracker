@@ -15,9 +15,7 @@ Improvements:
 
 Bugs:
 Plotting:
-    Weekly aggregation of % based metrics doesn't work when there's more than one data point for the week.
-Data:
-    New ingestion transforms % based metrics to float. Need to transform them back to % for plotting.
+    Video Finish rate is not plotting correctly.
 To Test:
     Monthly aggregation plotting.
     See if week start is influencing plotting.

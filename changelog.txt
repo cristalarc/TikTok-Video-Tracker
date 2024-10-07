@@ -1,3 +1,9 @@
+[2024-10-07] Improvements to Plotting Aggregation
+
+- Implemented a new method in the `Plotter` class to aggregate data for a selected video over a specified time range.
+- Added a new button in the `TikTokTrackerGUI` class to trigger this aggregation and plotting.
+- Updated the GUI to include a time range selection dropdown for the aggregation.
+
 [2024-10-07] Improve Ingestion Data Transformation
 
 - Implemented a new method in the `DataManager` class to transform percentage fields back to strings with a % sign.
