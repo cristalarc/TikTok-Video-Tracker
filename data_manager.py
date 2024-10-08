@@ -460,14 +460,15 @@ class DataManager:
 
     def aggregate_ctr(self, video_id, timeframe, week_start):
         """
-        Calculates CTR as (Sum of Product Clicks) / (Sum of VV) over the specified timeframe.
+        Calculates CTR as (Sum of Product Clicks) / (Sum of VV) * 100 over the specified timeframe.
         """
         data = self.get_aggregation_data(video_id, ['product_clicks', 'vv'], timeframe, week_start)
         result = []
         for period, group in data.groupby('period'):
             total_clicks = group['product_clicks'].sum()
             total_vv = group['vv'].sum()
-            ctr = (total_clicks / total_vv) if total_vv else np.nan
+            # Calculate CTR and multiply by 100 to get percentage
+            ctr = (total_clicks / total_vv) * 100 if total_vv else np.nan
             result.append((period, ctr))
         return result
 
@@ -480,7 +481,8 @@ class DataManager:
         for period, group in data.groupby('period'):
             total_orders = group['orders'].sum()
             total_clicks = group['product_clicks'].sum()
-            ctor = (total_orders / total_clicks) if total_clicks else np.nan
+            # Calculate CTR and multiply by 100 to get percentage
+            ctor = (total_orders / total_clicks) * 100 if total_clicks else np.nan
             result.append((period, ctor))
         return result
 
@@ -491,8 +493,14 @@ class DataManager:
         data = self.get_aggregation_data(video_id, [metric], timeframe, week_start)
         result = []
         for period, group in data.groupby('period'):
-            avg_metric = group[metric].mean()
+            # Convert values to decimals for calculation
+            values_in_decimal = group[metric] / 100.0
+            # Calculate the mean on decimal values
+            avg_metric_decimal = values_in_decimal.mean()
+            # Convert the mean back to percentage
+            avg_metric = avg_metric_decimal * 100
             result.append((period, avg_metric))
+            logging.info(f"Aggregated {metric} for {period}: {avg_metric}")
         return result
 
     def get_aggregation_data(self, video_id, columns, timeframe, week_start):

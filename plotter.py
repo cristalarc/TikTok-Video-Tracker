@@ -96,7 +96,8 @@ class Plotter:
 
             # Format Y-axis for percentage metrics
             if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
-                self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
+                # Since values are between 0 and 100, format without multiplying
+                self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2f}%'.format(y)))
             else:
                 self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.2f}'))
 
@@ -117,7 +118,7 @@ class Plotter:
                 date = dates.iloc[index].strftime('%Y-%m-%d')
                 value = values.iloc[index]
                 if metric in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
-                    value_str = f'{value:.2%}' if not np.isnan(value) else '--'
+                    value_str = f'{value:.2f}%' if not np.isnan(value) else '--'
                 else:
                     value_str = f'{value:.2f}' if not np.isnan(value) else '--'
                 return f'Date: {date}\n{metric}: {value_str}'
@@ -178,9 +179,9 @@ class Plotter:
             self.ax.set_ylabel(metric1, color='blue')
             self.ax.tick_params(axis='y', labelcolor='blue')
 
-            # Format y-axis for metric1 if it's a percentage
+            # Format y-axis for metric1
             if metric1 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
-                self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
+                self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2f}%'.format(y)))
             else:
                 self.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.2f}'))
 
@@ -190,9 +191,9 @@ class Plotter:
             ax2.set_ylabel(metric2, color='red')
             ax2.tick_params(axis='y', labelcolor='red')
 
-            # Format y-axis for metric2 if it's a percentage
+            # Format y-axis for metric2
             if metric2 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
-                ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2%}'.format(y)))
+                ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: '{:.2f}%'.format(y)))
             else:
                 ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f'{y:.2f}'))
 
@@ -221,29 +222,24 @@ class Plotter:
             self.fig.legend(loc='upper left')
 
             # Add interactive cursor
-            scatter1 = self.ax.scatter(df.index, df[metric1], color='blue', marker='o')
-            scatter2 = ax2.scatter(df.index, df[metric2], color='red', marker='s')
+            scatter1 = self.ax.scatter(df.index, df[metric1], color='blue', marker='o', label=metric1)
+            scatter2 = ax2.scatter(df.index, df[metric2], color='red', marker='s', label=metric2)
             cursor = mplcursors.cursor([scatter1, scatter2], hover=True)
 
             # Function to format annotations
             def format_annotation(sel):
                 index = sel.target.index
                 date = df.index[index].strftime('%Y-%m-%d')
-                value1 = df[metric1].iloc[index]
-                value2 = df[metric2].iloc[index]
+                metric_name = sel.artist.get_label()
+                value = df.iloc[index][metric_name]
 
                 # Format values
-                if metric1 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
-                    value1_str = f'{value1:.2%}' if not np.isnan(value1) else '--'
+                if metric_name in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
+                    value_str = f'{value:.2f}%' if not np.isnan(value) else '--'
                 else:
-                    value1_str = f'{value1:.2f}' if not np.isnan(value1) else '--'
+                    value_str = f'{value:.2f}' if not np.isnan(value) else '--'
 
-                if metric2 in ['CTR', 'CTOR', 'Video Finish Rate', 'V-to-L rate']:
-                    value2_str = f'{value2:.2%}' if not np.isnan(value2) else '--'
-                else:
-                    value2_str = f'{value2:.2f}' if not np.isnan(value2) else '--'
-
-                return f'Date: {date}\n{metric1}: {value1_str}\n{metric2}: {value2_str}'
+                return f'Date: {date}\n{metric_name}: {value_str}'
 
             cursor.connect("add", lambda sel: sel.annotation.set_text(format_annotation(sel)))
 

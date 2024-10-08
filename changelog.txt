@@ -1,3 +1,29 @@
+[2024-10-07] Percentage Metric Handling, Dual Plotting Improvements, Finished Aggregation
+
+- Fixed incorrect calculation of percentage-based metrics (e.g., Video Finish Rate) in weekly aggregations:
+  - Updated `aggregate_simple_average` method in `DataManager` class to correctly handle percentage values stored as numbers between 0 and 100.
+  - Implemented conversion process: divide by 100 before calculation, compute average, then multiply by 100 to return to original scale.
+
+- Enhanced `plot_metric` method in `Plotter` class:
+  - Modified y-axis formatter to display percentage values with % symbol for relevant metrics (CTR, CTOR, Video Finish Rate, V-to-L rate).
+  - Adjusted value processing to handle percentage metrics stored between 0 and 100 without additional scaling.
+
+- Improved `plot_dual_metric` method in `Plotter` class:
+  - Implemented dynamic formatting for y-axes and annotations based on metric type (percentage vs. non-percentage).
+  - Enhanced data processing to correctly handle dates and values for both metrics.
+  - Updated interactive cursor annotations to display formatted values based on metric type.
+
+- Refactored plotting functions for better consistency and maintainability:
+  - Streamlined data processing functions in both single and dual metric plotting methods.
+  - Ensured consistent handling of date formats across different timeframe options (Daily, Weekly, Monthly).
+
+- Improved error handling and user feedback:
+  - Added more robust error checking and logging throughout the plotting process.
+  - Implemented user-friendly warning messages for scenarios with no plottable data.
+
+- Updated documentation:
+  - Added comments and docstrings to clarify the purpose and functionality of key methods related to percentage metric handling and plotting.
+
 [2024-10-07] Improvements to Plotting Aggregation
 
 - Implemented a new method in the `Plotter` class to aggregate data for a selected video over a specified time range.
