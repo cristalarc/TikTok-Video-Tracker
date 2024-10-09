@@ -295,51 +295,14 @@ class DataManager:
                 return self.aggregate_simple_average(video_id, metric, timeframe, week_start)
             
             # For non-percentage metrics, proceed with standard aggregation
-            if timeframe == 'Daily':
-                group_by_clause = 'performance_date'
-            elif timeframe == 'Weekly':
-                # Fetch data and aggregate weekly
-                cursor.execute(f'''
-                    SELECT performance_date, {metric}
-                    FROM daily_performance
-                    WHERE video_id = ?
-                    ORDER BY performance_date
-                ''', (video_id,))
-                rows = cursor.fetchall()
-                return self.aggregate_weekly_data(rows, metric, week_start)
-            elif timeframe == 'Monthly':
-                group_by_clause = "strftime('%Y-%m', performance_date)"
-            else:
-                raise ValueError("Invalid timeframe")
+            df = self.get_aggregation_data(video_id, [metric], timeframe, week_start)
             
-            cursor.execute(f'''
-                SELECT {group_by_clause} as period, SUM({metric})
-                FROM daily_performance
-                WHERE video_id = ?
-                GROUP BY period
-                ORDER BY period
-            ''', (video_id,))
-            return cursor.fetchall()
+            # Group by period and sum the metric
+            result = df.groupby('period')[metric].sum().reset_index()
+            return list(result.itertuples(index=False, name=None))
         except Exception as e:
             logging.error(f"Error getting time series data: {str(e)}")
             raise
-
-    def aggregate_weekly_data(self, rows, metric, week_start):
-        import pandas as pd
-
-        data = pd.DataFrame(rows, columns=['performance_date', metric])
-        data['performance_date'] = pd.to_datetime(data['performance_date'])
-
-        # Set week start day
-        week_start_day = 'SUN' if week_start == 'Sunday' else 'MON'
-
-        # Group data by week
-        data.set_index('performance_date', inplace=True)
-        data.index = data.index.to_period('W-' + week_start_day).start_time
-        grouped = data.groupby(data.index).sum().reset_index()
-        grouped['week'] = grouped['performance_date'].dt.strftime('%Y-%m-%d')
-
-        return list(zip(grouped['week'], grouped[metric]))
 
     def clear_data_for_date(self, date):
         self.ensure_connection()

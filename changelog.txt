@@ -1,4 +1,13 @@
-[2024-10-08] Fixed bug with week start for % based metrics.
+[2024-10-09] Refactored Data Aggregation Methods
+
+- Removed redundant `aggregate_weekly_data` method from the `DataManager` class.
+- Enhanced `get_aggregation_data` method to handle all timeframes (Daily, Weekly, Monthly) consistently:
+  - Improved week start calculation for weekly aggregation.
+  - Added support for monthly aggregation.
+  - Standardized period formatting across all timeframes.
+- Updated `get_time_series_data` method to utilize the refactored `get_aggregation_data`:
+  - Streamlined data retrieval process for non-percentage metrics.
+  - Maintained custom aggregation for percentage-based metrics (CTR, CTOR, V-to-L rate, Video Finish Rate).
 
 [2024-10-07] Percentage Metric Handling, Dual Plotting Improvements, Finished Aggregation
 
