@@ -1,3 +1,5 @@
+[2024-10-08] Fixed bug with week start for % based metrics.
+
 [2024-10-07] Percentage Metric Handling, Dual Plotting Improvements, Finished Aggregation
 
 - Fixed incorrect calculation of percentage-based metrics (e.g., Video Finish Rate) in weekly aggregations:

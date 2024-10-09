@@ -42,6 +42,8 @@ class DataManager:
         self.save_settings()
 
     def set_week_start(self, week_start):
+        if week_start not in ['Sunday', 'Monday']:
+            raise ValueError("Week start day must be 'Sunday' or 'Monday'")
         self.week_start = week_start
         self.save_settings()
 
@@ -507,6 +509,7 @@ class DataManager:
         """
         Retrieves data and prepares it for aggregation.
         """
+        logging.info(f"Week start: {week_start}")
         cursor = self.conn.cursor()
         columns_str = ', '.join(columns)
         cursor.execute(f'''
@@ -520,10 +523,22 @@ class DataManager:
         df['performance_date'] = pd.to_datetime(df['performance_date'])
 
         if timeframe == 'Weekly':
-            week_start_day = 'SUN' if week_start == 'Sunday' else 'MON'
-            df['period'] = df['performance_date'].dt.to_period('W-' + week_start_day).dt.start_time
+            # Map week_start to numerical day of week (Monday=0, Sunday=6)
+            day_map = {'Monday': 0, 'Sunday': 6}
+
+            week_start_num = day_map.get(week_start, 0)  # Defaults to Monday if invalid
+
+            # Compute the start of the week
+            df['period'] = df['performance_date'] - pd.to_timedelta(
+                (df['performance_date'].dt.dayofweek - week_start_num) % 7,
+                unit='d'
+            )
+            df['period'] = df['period'].dt.normalize()  # Ensure time component is set to midnight
+            
         elif timeframe == 'Monthly':
-            df['period'] = df['performance_date'].dt.to_period('M').dt.start_time
+            df['period'] = df['performance_date'].values.astype('datetime64[M]')
+            
         else:
             df['period'] = df['performance_date']
+
         return df
