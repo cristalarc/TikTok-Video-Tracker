@@ -16,6 +16,12 @@ logging.getLogger('PIL').setLevel(logging.WARNING)
 
 class TikTokTrackerGUI:
     def __init__(self, master):
+        """
+        Initialize the TikTokTrackerGUI.
+
+        Args:
+            master (tk.Tk): The root window of the Tkinter application.
+        """
         self.master = master
         self.master.title("TikTok Video Tracker")
         self.master.geometry("1000x700")
@@ -28,6 +34,9 @@ class TikTokTrackerGUI:
         self.show_home()
 
     def create_menu(self):
+        """
+        Create the menu bar with Home, Trending, and Settings menus.
+        """
         menubar = tk.Menu(self.master)
         self.master.config(menu=menubar)
 
@@ -43,9 +52,15 @@ class TikTokTrackerGUI:
         settings_menu.add_command(label="Open Settings", command=self.open_settings)
 
     def open_settings(self):
+        """
+        Open the settings window.
+        """
         SettingsWindow(self.master, self.data_manager)
 
     def create_widgets(self):
+        """
+        Create the main widgets for the GUI.
+        """
         # Create Frames for better layout management
         self.top_frame = ttk.Frame(self.master)
         self.top_frame.pack(pady=10, padx=10, fill=tk.X)
@@ -141,6 +156,9 @@ class TikTokTrackerGUI:
         self.last_performance_date.set(f"Last Performance Date: {latest_date}")
 
     def show_home(self):
+        """
+        Display the Home page by arranging the relevant frames and widgets.
+        """
         # Clear any widgets from other pages
         self.clear_page()
 
@@ -150,6 +168,9 @@ class TikTokTrackerGUI:
         self.bottom_frame.pack(pady=10, padx=10, fill=tk.X)
 
     def create_context_menu(self):
+        """
+        Create a context menu with options such as copying Video ID and plotting metrics.
+        """
         self.context_menu = tk.Menu(self.master, tearoff=0)
         self.context_menu.add_command(label="Copy Video ID", command=self.copy_selected_video_id)
         self.context_menu.add_command(label="Open Video in Browser", command=self.open_selected_video_in_browser)
@@ -166,6 +187,12 @@ class TikTokTrackerGUI:
             self.plot_submenu.add_command(label=metric, command=lambda m=metric: self.plot_metric_from_context(m))
 
     def show_context_menu(self, event):
+        """
+        Display the context menu at the cursor's position if a treeview item is clicked.
+
+        Args:
+            event (tk.Event): The event object containing event data.
+        """
         item = self.results_tree.identify_row(event.y)
         if item:
             self.results_tree.selection_set(item)
@@ -176,12 +203,18 @@ class TikTokTrackerGUI:
             self.context_menu.grab_release()
 
     def copy_selected_video_id(self):
+        """
+        Copy the Video ID of the selected video to the clipboard.
+        """
         selected_item = self.results_tree.selection()[0]
         video_id = self.results_tree.item(selected_item)['values'][0]
         self.master.clipboard_clear()
         self.master.clipboard_append(video_id)
 
     def open_selected_video_in_browser(self):
+        """
+        Open the selected video in the default web browser using the video ID and creator name.
+        """
         selected_item = self.results_tree.selection()[0]
         video_id = self.results_tree.item(selected_item)['values'][0]
         creator_name = self.results_tree.item(selected_item)['values'][3]  # Assuming 'Creator' is the 4th column
@@ -193,6 +226,11 @@ class TikTokTrackerGUI:
         webbrowser.open(url)
 
     def upload_file(self):
+        """
+        Handle the uploading of one or more Excel files containing video performance data.
+        Creates a database backup before processing and updates the UI upon completion.
+
+        """
         try:
             file_paths = filedialog.askopenfilenames(filetypes=[("Excel files", "*.xlsx")])
             if not file_paths:
@@ -233,6 +271,15 @@ class TikTokTrackerGUI:
             logging.error(f"Error in upload_file: {str(e)}", exc_info=True)
 
     def process_single_file(self, file_path):
+        """
+        Process a single Excel file to read, filter, and insert video performance data into the database.
+
+        Args:
+            file_path (str): The path to the Excel file to process.
+
+        Returns:
+            str: A message indicating the result of the processing.
+        """
         try:
             df = self.data_manager.read_video_performance_excel(file_path)
             filtered_df = self.data_manager.filter_videos(df)
@@ -257,6 +304,9 @@ class TikTokTrackerGUI:
             return f"Unexpected error processing file {os.path.basename(file_path)}: {str(e)}"
 
     def search_videos(self):
+        """
+        Search for videos based on the user's query and display the results in the treeview.
+        """
         query = self.search_var.get()
         results = self.data_manager.search_videos(query)
         self.results_tree.delete(*self.results_tree.get_children())
@@ -284,6 +334,12 @@ class TikTokTrackerGUI:
         self.display_video_details(video_id)
 
     def display_video_details(self, video_id):
+        """
+        Display the details of a specific video in the details text widget.
+
+        Args:
+            video_id (str): The ID of the video to display details for.
+        """
         details = self.data_manager.get_video_details(video_id)
         if details:
             self.details_text.delete(1.0, tk.END)
@@ -318,6 +374,13 @@ class TikTokTrackerGUI:
             self.details_text.insert(tk.END, "No details found for this video.")
 
     def open_video_from_details(self, video_id, creator_name):
+        """
+        Open the selected video in the web browser based on the video ID and creator name.
+
+        Args:
+            video_id (str): The ID of the video to open.
+            creator_name (str): The name of the video creator.
+        """
         # Remove '@' symbol if it's already in the creator_name
         creator_name = creator_name.lstrip('@')
         
@@ -325,6 +388,9 @@ class TikTokTrackerGUI:
         webbrowser.open(url)
 
     def create_selected_video_metric_plot(self):
+        """
+        Create and display a plot for the selected metric of a selected video based on the chosen timeframe.
+        """
         selected_items = self.results_tree.selection()
         if not selected_items:
             messagebox.showwarning("Warning", "Please select a video to plot.")
@@ -378,6 +444,9 @@ class TikTokTrackerGUI:
         self.plotter.embed_plot(self.master)
 
     def create_selected_video_dual_metric_plot(self):
+        """
+        Create and display a dual metric plot for the selected video based on the chosen timeframe.
+        """
         selected_items = self.results_tree.selection()
         if not selected_items:
             messagebox.showwarning("Warning", "Please select a video to plot.")
@@ -441,6 +510,12 @@ class TikTokTrackerGUI:
         self.plotter.embed_plot(self.master)
 
     def plot_metric_from_context(self, metric):
+        """
+        Plot a selected metric from the context menu for the selected video.
+
+        Args:
+            metric (str): The metric to plot.
+        """
         selected_items = self.results_tree.selection()
         if selected_items:
             video_id = self.results_tree.item(selected_items[0])['values'][0]
@@ -473,6 +548,10 @@ class TikTokTrackerGUI:
             self.plotter.embed_plot(self.master)
 
     def clear_video_performance(self):
+        """
+        Clear video performance data for a specified date after user confirmation.
+        Ensures data integrity by creating a backup before deletion.
+        """
         # Create a simple dialog to get the date, specifying the parent window
         date = simpledialog.askstring("Clear Video Performance", "Enter date to clear (YYYY-MM-DD):", parent=self.master)
         if not date:
@@ -497,6 +576,9 @@ class TikTokTrackerGUI:
             logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)
 
     def restore_database(self):
+        """
+        Restore the database from a selected backup file and update the UI accordingly.
+        """
         # Get the directory of the current script
         current_dir = os.path.dirname(os.path.abspath(__file__))
         # Set the initial directory to the db_backup folder
@@ -519,12 +601,23 @@ class TikTokTrackerGUI:
                 messagebox.showerror("Error", "Failed to restore database. Check the log for details.")
 
     def load_and_display_all_videos(self):
+        """
+        Load all videos from the database and display them in the treeview.
+        """
         self.results_tree.delete(*self.results_tree.get_children())
         videos = self.data_manager.get_all_videos()
         for video in videos:
             self.results_tree.insert("", "end", values=video)
 
     def treeview_sort_column(self, tv, col, reverse):
+        """
+        Sort the treeview based on a specified column.
+
+        Args:
+            tv (ttk.Treeview): The treeview widget to sort.
+            col (str): The column to sort by.
+            reverse (bool): Whether to sort in reverse order.
+        """
         l = [(tv.set(k, col), k) for k in tv.get_children('')]
         try:
             l.sort(key=lambda t: float(t[0]), reverse=reverse)
@@ -537,6 +630,9 @@ class TikTokTrackerGUI:
         tv.heading(col, command=lambda: self.treeview_sort_column(tv, col, not reverse))
     
     def show_trending(self):
+        """
+        Display the Trending page, replacing current content with Trending-related widgets.
+        """
         # Clear any widgets from other pages
         self.clear_page()
 
@@ -545,6 +641,9 @@ class TikTokTrackerGUI:
         self.trending_label.pack(pady=20)
 
     def clear_page(self):
+        """
+        Clear all widgets from the main window and reset the Trending label if present.
+        """
         # Hide all widgets
         for widget in self.master.winfo_children():
             widget.pack_forget()
@@ -556,6 +655,13 @@ class TikTokTrackerGUI:
 
 class SettingsWindow(tk.Toplevel):
     def __init__(self, parent, data_manager):
+        """
+        Initialize the SettingsWindow, allowing users to adjust application settings.
+
+        Args:
+            parent (tk.Tk): The parent window.
+            data_manager (DataManager): An instance of DataManager for accessing and updating settings.
+        """
         super().__init__(parent)
         self.title("Settings")
         self.data_manager = data_manager
@@ -571,6 +677,9 @@ class SettingsWindow(tk.Toplevel):
         self.grab_set()
         
     def create_widgets_settings(self):
+        """
+        Create and arrange widgets within the Settings window for adjusting thresholds and week start day.
+        """
         # Video View Ingestion Threshold setting
         ttk.Label(self, text="Video View Ingestion Threshold:").grid(row=0, column=0, padx=5, pady=5)
         self.threshold_var = tk.StringVar(value=str(self.data_manager.vv_threshold))
@@ -586,6 +695,9 @@ class SettingsWindow(tk.Toplevel):
         ttk.Button(self, text="Save", command=self.save_settings).grid(row=2, column=0, columnspan=2, pady=10)
 
     def save_settings(self):
+        """
+        Validate and save the user's settings, updating the DataManager accordingly.
+        """
         try:
             # Saving Video View Ingestion Threshold
             new_threshold = int(self.threshold_var.get())

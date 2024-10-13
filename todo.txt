@@ -1,12 +1,11 @@
 - Add a function that detects when videos are growing in views and send a notification to the user.
+- Add a function that helps product performance and then show videos that are ourperforming for that product.
 - I want the UI to be adaptive of my PC resolution?
 - Add a Help menu with a link to the readme.
     Include a glossary of metrics.
     Include a description of every dashboard?
 
 Improvements:
-- Excel file processor:
-    Automatically detect the date based on the file data.
 -Dynamic Metric Handling: Consider allowing multiple metrics to be plotted simultaneously, not just two.
 -Interactive Plots: Explore adding interactive features like zooming or hovering to see data values using libraries like mplcursors (already used in your code).
 -Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
@@ -14,8 +13,6 @@ Improvements:
 Bugs:
 To Test:
     Monthly aggregation plotting.
-    See if week start is influencing plotting.
-    Week start not working properly.
     There's a warning when plotting dual metrics.
         UserWarning: Selection.target.index is deprecated and will be removed in the future; use Selection.index instead.
 

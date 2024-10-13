@@ -10,3 +10,16 @@ The software should also have plotting capabilities. When I choose a specific vi
 The metrics to track are the following VV, Likes, Comments, Shares, New followers, V-to-L clicks, Product Impressions, Product Clicks, Buyers, Orders, Unit Sales, Video Revenue ($), GPM ($), Shoppable video attributed GMV ($), CTR, V-to-L rate, Video Finish Rate, CTOR.
 
 The software needs to have buttons that trigger the upload of Videodetails_tiktok_export.xlsx which will be facilitated by a window that allows the user to select the file to upload.
+
+Trending section: this section should help the user understand which videos are having the most impact due to recent performance. The whole point of this section is to help the user understand which videos are outperforming in terms of video views, shares, comments, GMV, CTR, CTOR and Video Finish Rate.
+
+- The trending section needs to show the top 10 videos with the most views for the given day.
+- The trending section needs to show the top 10 videos with the most shares for the given day.  
+- The trending section needs to show the top 10 videos with the most comments for the given day.
+- The trending section needs to show the top 10 videos with the most GMV for the given day.
+- The trending section needs to show the top 10 videos with the most CTR for the given day.
+- The trending section needs to show the top 10 videos with the most CTOR for the given day.
+- The trending section needs to show the top 10 videos with the most Video Finish Rate for the given day.
+- It should always default to show data for the most recent date that data has been uploaded for.
+- These all can be a window with a dropdown to select the metric.
+- It needs to be smart and calculate a benchmark performance for each product, assign it to it, and then use that as a reference to see if the video is performing better or worse than the benchmark.
