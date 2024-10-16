@@ -1,3 +1,19 @@
+[2024-10-16] Refactored GUI to Separate Settings Logic
+
+-Updated TikTokTrackerGUI class to utilize a new SettingsManager for managing application settings:
+-Created an instance of SettingsManager within TikTokTrackerGUI to handle settings persistence and logic.
+-Modified the open_settings() method to create a SettingsWindow instance, passing both data_manager and settings_manager to decouple settings management from the UI.
+
+Refactored SettingsWindow class:
+
+-Updated the constructor (__init__()) to accept settings_manager as an additional parameter.
+-Changed the save_settings() method name to save_user_settings() to better represent its role in saving settings from the UI.
+-Integrated SettingsManager for saving user preferences, ensuring that SettingsWindow only handles the UI aspects.
+
+Enhanced maintainability and Single Responsibility Principle (SRP) compliance:
+-Divided the responsibilities of the SettingsWindow between UI (handled by SettingsWindow) and logic (handled by SettingsManager).
+-Improved code clarity by making method names more descriptive and specific to their contexts.
+
 [2024-10-09] Refactored Data Aggregation Methods
 
 - Removed redundant `aggregate_weekly_data` method from the `DataManager` class.

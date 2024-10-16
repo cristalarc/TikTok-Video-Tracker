@@ -1,4 +1,24 @@
+Refactoring:
+Process single file is in gui.py, it should be in data_manager.
+Settings class controls both GUi and business logic, separate them.
+Refactor the file slowly one by one.
+
+Trending Section:
+Trending Section Descrtion:
+The Trending Section should display videos that are trending for a given day according to the following key metrics, Views, Shares, Comments, GMV, CTR, CTOR, Video Finish Rate.
+This section should allow you to input a date (by default is the latest date for which data has been inputted) and then show the performance of videos in a table like format but only showing the above metrics as well as the video ID.
+
+The Trending section should also have features that allow the following:
+
+- Calculate benchmark data for the key metrics above at a product level. Based on all the video data ingested, it should calculate benchmark values for each product and then identify videos that are outperforming the benchmkark. It should then display these outperforming videos in a separate table like UI.
+- Identify videos that are starting to trend. It should identify when a given video is starting to have a significant improvement in performance for any of the above key metrics. It should then display these outperforming videos in a separate table like UI.
+
+The Trending section should in total have three window views. One for the top videos of the selected date, one for the videos overperfoming benchmark, and one for the identified videos that are starting to trend.
+
+
+
 - Add a function that detects when videos are growing in views and send a notification to the user.
+++ Start by separating the Settings behavior from TikTokTrackerGUI
 - Add a function that helps product performance and then show videos that are ourperforming for that product.
 - I want the UI to be adaptive of my PC resolution?
 - Add a Help menu with a link to the readme.

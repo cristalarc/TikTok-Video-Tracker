@@ -4,6 +4,8 @@ import logging
 from data_manager import DataManager
 from plotter import Plotter
 from datetime import datetime
+from settings_manager import SettingsManager
+from settings_window import SettingsWindow 
 import os
 import webbrowser
 
@@ -27,6 +29,7 @@ class TikTokTrackerGUI:
         self.master.geometry("1000x700")
         self.data_manager = DataManager()
         self.plotter = Plotter()
+        self.settings_manager = SettingsManager(self.data_manager)
         self.trending_label = None
         self.create_menu()
         self.create_widgets()
@@ -49,13 +52,13 @@ class TikTokTrackerGUI:
         # Settings menu
         settings_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Settings", menu=settings_menu)
-        settings_menu.add_command(label="Open Settings", command=self.open_settings)
+        settings_menu.add_command(label="Open Settings", command=self.open_settings_window)
 
-    def open_settings(self):
+    def open_settings_window(self):
         """
         Open the settings window.
         """
-        SettingsWindow(self.master, self.data_manager)
+        SettingsWindow(self.master, self.data_manager, self.settings_manager)
 
     def create_widgets(self):
         """
@@ -652,68 +655,3 @@ class TikTokTrackerGUI:
         if self.trending_label:
             self.trending_label.destroy()
             self.trending_label = None
-
-class SettingsWindow(tk.Toplevel):
-    def __init__(self, parent, data_manager):
-        """
-        Initialize the SettingsWindow, allowing users to adjust application settings.
-
-        Args:
-            parent (tk.Tk): The parent window.
-            data_manager (DataManager): An instance of DataManager for accessing and updating settings.
-        """
-        super().__init__(parent)
-        self.title("Settings")
-        self.data_manager = data_manager
-        self.create_widgets_settings()
-        
-        # Make this window transient for the parent window
-        self.transient(parent)
-        
-        # Set the window position relative to the parent window
-        self.geometry(f"+{parent.winfo_x() + 50}+{parent.winfo_y() + 50}")
-        
-        # Make the window modal
-        self.grab_set()
-        
-    def create_widgets_settings(self):
-        """
-        Create and arrange widgets within the Settings window for adjusting thresholds and week start day.
-        """
-        # Video View Ingestion Threshold setting
-        ttk.Label(self, text="Video View Ingestion Threshold:").grid(row=0, column=0, padx=5, pady=5)
-        self.threshold_var = tk.StringVar(value=str(self.data_manager.vv_threshold))
-        ttk.Entry(self, textvariable=self.threshold_var).grid(row=0, column=1, padx=5, pady=5)
-
-        # Week Start Day setting
-        ttk.Label(self, text="Week Starts On:").grid(row=1, column=0, padx=5, pady=5)
-        self.week_start_var = tk.StringVar(value=self.data_manager.week_start)
-        self.week_start_options = ['Sunday', 'Monday']
-        ttk.Combobox(self, textvariable=self.week_start_var, values=self.week_start_options, state='readonly').grid(row=1, column=1, padx=5, pady=5)
-
-        # Save button
-        ttk.Button(self, text="Save", command=self.save_settings).grid(row=2, column=0, columnspan=2, pady=10)
-
-    def save_settings(self):
-        """
-        Validate and save the user's settings, updating the DataManager accordingly.
-        """
-        try:
-            # Saving Video View Ingestion Threshold
-            new_threshold = int(self.threshold_var.get())
-            if new_threshold <= 0:
-                raise ValueError("Threshold must be a positive integer")
-            self.data_manager.set_vv_threshold(new_threshold)
-
-            # Saving Week Start Day
-            new_week_start = self.week_start_var.get()
-            if new_week_start not in ['Sunday', 'Monday']:
-                raise ValueError("Week start day must be 'Sunday' or 'Monday'")
-            self.data_manager.set_week_start(new_week_start)
-
-            messagebox.showinfo("Success", "Settings saved successfully")
-            self.destroy()
-        except ValueError as e:
-            messagebox.showerror("Error", str(e))
-    
-    
