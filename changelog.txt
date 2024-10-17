@@ -1,3 +1,10 @@
+[2024-10-17] Refactored Trending Page Logic
+
+Moved Trending page functionality from TikTokTrackerGUI to a separate TrendingPage class:
+-Created a new TrendingPage class in trending_page.py to handle displaying the Trending page.
+-Removed show_trending() from TikTokTrackerGUI and moved the trending-specific functionality to TrendingPage.
+-Modified clear_page() to behave as a general utility method to TikTokTrackerGUI
+
 [2024-10-16] Refactored GUI to Separate Settings Logic
 
 -Updated TikTokTrackerGUI class to utilize a new SettingsManager for managing application settings:

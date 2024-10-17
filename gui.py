@@ -6,6 +6,7 @@ from plotter import Plotter
 from datetime import datetime
 from settings_manager import SettingsManager
 from settings_window import SettingsWindow 
+from trending_page import TrendingPage
 import os
 import webbrowser
 
@@ -30,7 +31,7 @@ class TikTokTrackerGUI:
         self.data_manager = DataManager()
         self.plotter = Plotter()
         self.settings_manager = SettingsManager(self.data_manager)
-        self.trending_label = None
+        self.trending_page = TrendingPage(self.master, self.clear_page)
         self.create_menu()
         self.create_widgets()
         self.load_and_display_all_videos()
@@ -47,7 +48,7 @@ class TikTokTrackerGUI:
         menubar.add_command(label="Home", command=self.show_home)
 
         # Trending menu
-        menubar.add_command(label="Trending", command=self.show_trending)
+        menubar.add_command(label="Trending", command=self.trending_page.show_trending)
 
         # Settings menu
         settings_menu = tk.Menu(menubar, tearoff=0)
@@ -631,27 +632,12 @@ class TikTokTrackerGUI:
             tv.move(k, '', index)
 
         tv.heading(col, command=lambda: self.treeview_sort_column(tv, col, not reverse))
-    
-    def show_trending(self):
-        """
-        Display the Trending page, replacing current content with Trending-related widgets.
-        """
-        # Clear any widgets from other pages
-        self.clear_page()
-
-        # Show the Trending page content
-        self.trending_label = ttk.Label(self.master, text="Trending Page (Under Construction)")
-        self.trending_label.pack(pady=20)
 
     def clear_page(self):
         """
         Clear all widgets from the main window and reset the Trending label if present.
+        Meant to be a main utility function to clear the page.
         """
         # Hide all widgets
         for widget in self.master.winfo_children():
             widget.pack_forget()
-        
-        # Destroy the trending label if it exists
-        if self.trending_label:
-            self.trending_label.destroy()
-            self.trending_label = None
