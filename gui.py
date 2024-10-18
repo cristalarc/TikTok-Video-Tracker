@@ -1,3 +1,4 @@
+#gui.py is the main file that handles the GUI and the interaction between the different components of the app.
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog
 import logging
@@ -37,7 +38,7 @@ class TikTokTrackerGUI:
         self.load_and_display_all_videos()
         self.show_home()
 
-    def create_menu(self):
+    def create_menu(self): #STAYS
         """
         Create the menu bar with Home, Trending, and Settings menus.
         """
@@ -55,7 +56,7 @@ class TikTokTrackerGUI:
         menubar.add_cascade(label="Settings", menu=settings_menu)
         settings_menu.add_command(label="Open Settings", command=self.open_settings_window)
 
-    def open_settings_window(self):
+    def open_settings_window(self): #STAYS
         """
         Open the settings window.
         """
@@ -159,7 +160,7 @@ class TikTokTrackerGUI:
         latest_date = self.data_manager.get_latest_performance_date()
         self.last_performance_date.set(f"Last Performance Date: {latest_date}")
 
-    def show_home(self):
+    def show_home(self): #STAYS
         """
         Display the Home page by arranging the relevant frames and widgets.
         """
@@ -171,7 +172,7 @@ class TikTokTrackerGUI:
         self.middle_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
         self.bottom_frame.pack(pady=10, padx=10, fill=tk.X)
 
-    def create_context_menu(self):
+    def create_context_menu(self): #CONTEXT MENU FILE. The page needs to know which context menu to call
         """
         Create a context menu with options such as copying Video ID and plotting metrics.
         """
@@ -190,7 +191,7 @@ class TikTokTrackerGUI:
         for metric in metrics:
             self.plot_submenu.add_command(label=metric, command=lambda m=metric: self.plot_metric_from_context(m))
 
-    def show_context_menu(self, event):
+    def show_context_menu(self, event): #STAYS
         """
         Display the context menu at the cursor's position if a treeview item is clicked.
 
@@ -206,7 +207,7 @@ class TikTokTrackerGUI:
         finally:
             self.context_menu.grab_release()
 
-    def copy_selected_video_id(self):
+    def copy_selected_video_id(self): #CONTEXT MENU FILE
         """
         Copy the Video ID of the selected video to the clipboard.
         """
@@ -215,7 +216,7 @@ class TikTokTrackerGUI:
         self.master.clipboard_clear()
         self.master.clipboard_append(video_id)
 
-    def open_selected_video_in_browser(self):
+    def open_selected_video_in_browser(self): #CONTEXT MENU FILE
         """
         Open the selected video in the default web browser using the video ID and creator name.
         """
@@ -229,7 +230,7 @@ class TikTokTrackerGUI:
         url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
         webbrowser.open(url)
 
-    def upload_file(self):
+    def upload_file(self): #FILE HANDLER FILE
         """
         Handle the uploading of one or more Excel files containing video performance data.
         Creates a database backup before processing and updates the UI upon completion.
@@ -274,7 +275,7 @@ class TikTokTrackerGUI:
             messagebox.showerror("Error", error_message)
             logging.error(f"Error in upload_file: {str(e)}", exc_info=True)
 
-    def process_single_file(self, file_path):
+    def process_single_file(self, file_path): #FILE HANDLER FILE
         """
         Process a single Excel file to read, filter, and insert video performance data into the database.
 
@@ -307,7 +308,7 @@ class TikTokTrackerGUI:
         except Exception as e:
             return f"Unexpected error processing file {os.path.basename(file_path)}: {str(e)}"
 
-    def search_videos(self):
+    def search_videos(self): #HOME PAGE FILE
         """
         Search for videos based on the user's query and display the results in the treeview.
         """
@@ -317,7 +318,7 @@ class TikTokTrackerGUI:
         for result in results:
             self.results_tree.insert("", "end", values=result)
 
-    def on_video_select(self, event):
+    def on_video_select(self, event): #HOME PAGE FILE
         """
         Event handler for when a video is selected in the Treeview.
         Retrieves the selected video's ID and displays its details.
@@ -377,7 +378,7 @@ class TikTokTrackerGUI:
             self.details_text.delete(1.0, tk.END)
             self.details_text.insert(tk.END, "No details found for this video.")
 
-    def open_video_from_details(self, video_id, creator_name):
+    def open_video_from_details(self, video_id, creator_name): #HOME PAGE FILE
         """
         Open the selected video in the web browser based on the video ID and creator name.
 
@@ -391,7 +392,7 @@ class TikTokTrackerGUI:
         url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
         webbrowser.open(url)
 
-    def create_selected_video_metric_plot(self):
+    def create_selected_video_metric_plot(self): #HOME PAGE FILE
         """
         Create and display a plot for the selected metric of a selected video based on the chosen timeframe.
         """
@@ -447,7 +448,7 @@ class TikTokTrackerGUI:
         self.plotter.plot_metric(data, metric, timeframe=timeframe)
         self.plotter.embed_plot(self.master)
 
-    def create_selected_video_dual_metric_plot(self):
+    def create_selected_video_dual_metric_plot(self): #HOME PAGE FILE
         """
         Create and display a dual metric plot for the selected video based on the chosen timeframe.
         """
@@ -513,7 +514,7 @@ class TikTokTrackerGUI:
         self.plotter.plot_dual_metric(data1, metric1, data2, metric2, timeframe=timeframe)
         self.plotter.embed_plot(self.master)
 
-    def plot_metric_from_context(self, metric):
+    def plot_metric_from_context(self, metric): #HOME PAGE FILE
         """
         Plot a selected metric from the context menu for the selected video.
 
@@ -551,7 +552,7 @@ class TikTokTrackerGUI:
             self.plotter.plot_metric(data, metric)
             self.plotter.embed_plot(self.master)
 
-    def clear_video_performance(self):
+    def clear_video_performance(self): #FILE HANDLER FILE
         """
         Clear video performance data for a specified date after user confirmation.
         Ensures data integrity by creating a backup before deletion.
@@ -579,7 +580,7 @@ class TikTokTrackerGUI:
             messagebox.showerror("Error", error_message, parent=self.master)
             logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)
 
-    def restore_database(self):
+    def restore_database(self): #FILE HANDLER FILE
         """
         Restore the database from a selected backup file and update the UI accordingly.
         """
@@ -604,7 +605,7 @@ class TikTokTrackerGUI:
             else:
                 messagebox.showerror("Error", "Failed to restore database. Check the log for details.")
 
-    def load_and_display_all_videos(self):
+    def load_and_display_all_videos(self): #HOME PAGE FILE
         """
         Load all videos from the database and display them in the treeview.
         """
@@ -613,7 +614,7 @@ class TikTokTrackerGUI:
         for video in videos:
             self.results_tree.insert("", "end", values=video)
 
-    def treeview_sort_column(self, tv, col, reverse):
+    def treeview_sort_column(self, tv, col, reverse): #HOME PAGE FILE
         """
         Sort the treeview based on a specified column.
 
@@ -633,7 +634,7 @@ class TikTokTrackerGUI:
 
         tv.heading(col, command=lambda: self.treeview_sort_column(tv, col, not reverse))
 
-    def clear_page(self):
+    def clear_page(self): #STAYS
         """
         Clear all widgets from the main window and reset the Trending label if present.
         Meant to be a main utility function to clear the page.

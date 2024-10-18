@@ -2,21 +2,24 @@ Refactoring:
 Process single file is in gui.py, it should be in data_manager.
 Refactor the file slowly one by one.
 
-project_root/
+your_project/
+│
 ├── gui/
 │   ├── __init__.py
-│   ├── main_gui.py
-│   ├── menu.py
 │   ├── home_view.py
 │   ├── trending_page.py
-│   └── settings/
-│       ├── __init__.py
-│       ├── settings_gui.py
-│       └── settings_manager.py
-└── data_manager/
-    ├── __init__.py
-    └── data_processing.py
-
+│   ├── settings_window.py
+│   └── main_gui.py  # This is where TikTokTrackerGUI is defined
+│
+├── data_manager/
+│   ├── __init__.py
+│   └── data_manager.py
+│
+├── plotter/
+│   ├── __init__.py
+│   └── plotter.py
+│
+└── main.py  # Entry point for running the app
 
 Trending Section:
 Trending Section Descrtion:
