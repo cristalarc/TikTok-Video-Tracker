@@ -1,3 +1,4 @@
+#plotter.py is the file that handles the plotting of the data.
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk

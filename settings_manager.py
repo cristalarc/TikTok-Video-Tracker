@@ -1,3 +1,4 @@
+#settings_manager.py is the file that handles the settings saving and loading.
 # No logging needed for this file.
 
 class SettingsManager:

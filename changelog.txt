@@ -1,3 +1,19 @@
+[2024-10-18] Refactored File Handling Logic
+
+- Created a new FileHandler class in file_handler.py to manage file-related operations:
+  - Moved upload_video_performance_file method from TikTokTrackerGUI to FileHandler.
+  - Transferred process_single_file method to FileHandler for better encapsulation.
+  - Relocated restore_database method to FileHandler, improving separation of concerns.
+
+- Updated TikTokTrackerGUI class in gui.py:
+  - Removed file handling methods that were moved to FileHandler.
+  - Added a FileHandler instance as an attribute to TikTokTrackerGUI.
+  - Modified relevant method calls to use the new FileHandler instance.
+
+- Relocated clear_video_performance method:
+  - Moved from FileHandler to DataManager for better logical grouping of data operations.
+  - Updated references in TikTokTrackerGUI to call the method through data_manager.
+
 [2024-10-17] Refactored Trending Page Logic
 
 Moved Trending page functionality from TikTokTrackerGUI to a separate TrendingPage class:

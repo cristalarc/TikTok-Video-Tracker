@@ -1,3 +1,4 @@
+#settings_window.py is the file that handles the settings window of the app.
 import tkinter as tk
 from tkinter import ttk, messagebox
 

@@ -1,3 +1,4 @@
+#data_manager.py is the file that handles the data ingestion, processing, and storage.
 import pandas as pd
 import sqlite3
 import logging

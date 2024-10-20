@@ -2,6 +2,8 @@ Refactoring:
 Process single file is in gui.py, it should be in data_manager.
 Refactor the file slowly one by one.
 
+Create a QA list for the app.
+
 your_project/
 │
 ├── gui/

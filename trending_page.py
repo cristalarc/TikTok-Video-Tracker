@@ -1,3 +1,4 @@
+#trending_page.py is the file that handles the trending page of the app.
 import tkinter as tk
 from tkinter import ttk
 

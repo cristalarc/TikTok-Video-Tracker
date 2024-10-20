@@ -8,6 +8,7 @@ from datetime import datetime
 from settings_manager import SettingsManager
 from settings_window import SettingsWindow 
 from trending_page import TrendingPage
+from file_handler import FileHandler
 import os
 import webbrowser
 
@@ -33,6 +34,7 @@ class TikTokTrackerGUI:
         self.plotter = Plotter()
         self.settings_manager = SettingsManager(self.data_manager)
         self.trending_page = TrendingPage(self.master, self.clear_page)
+        self.file_handler = FileHandler(self.data_manager)
         self.create_menu()
         self.create_widgets()
         self.load_and_display_all_videos()
@@ -77,13 +79,13 @@ class TikTokTrackerGUI:
         self.bottom_frame.pack(pady=10, padx=10, fill=tk.X)
 
         # Top Frame Widgets
-        self.upload_button = ttk.Button(self.top_frame, text="Upload Excel File", command=self.upload_file)
+        self.upload_button = ttk.Button(self.top_frame, text="Upload Excel File", command=self.update_video_performance)
         self.upload_button.pack(side=tk.LEFT, padx=5)
 
-        self.clear_data_button = ttk.Button(self.top_frame, text="Clear Video Performance", command=self.clear_video_performance)
+        self.clear_data_button = ttk.Button(self.top_frame, text="Clear Video Performance", command=lambda: self.file_handler.clear_video_performance(self.master))
         self.clear_data_button.pack(side=tk.LEFT, padx=5)
 
-        self.restore_button = ttk.Button(self.top_frame, text="Restore Database", command=self.restore_database)
+        self.restore_button = ttk.Button(self.top_frame, text="Restore Database", command=self.update_restore_database)
         self.restore_button.pack(side=tk.LEFT, padx=5)
 
         # Search Bar
@@ -230,83 +232,37 @@ class TikTokTrackerGUI:
         url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
         webbrowser.open(url)
 
-    def upload_file(self): #FILE HANDLER FILE
+    def update_video_performance(self): #HOME PAGE FILE
         """
-        Handle the uploading of one or more Excel files containing video performance data.
-        Creates a database backup before processing and updates the UI upon completion.
+        Calls the file handler to upload one or more Excel files containing video performance data.
+        Updates the last performance date.
+        Updates the UI upon completion.
 
         """
-        try:
-            file_paths = filedialog.askopenfilenames(filetypes=[("Excel files", "*.xlsx")])
-            if not file_paths:
-                return
-
-            # Create a backup before processing any files
-            self.data_manager.backup_database()
-
-            skipped_files = []
-            processed_files = []
-
-            for file_path in file_paths:
-                result = self.process_single_file(file_path)
-                if result.startswith("Error") or result.startswith("Data for"):
-                    skipped_files.append(result)
-                else:
-                    processed_files.append(result)
-
+        success = self.file_handler.upload_video_performance_file(self.master)
+        if success:
             # Update the last performance date
             latest_date = self.data_manager.get_latest_performance_date()
             self.last_performance_date.set(f"Last Performance Date: {latest_date}")
-
             # Refresh the video list
             self.load_and_display_all_videos()
-
-            # Prepare the result message
-            result_message = "File processing complete.\n\n"
-            if processed_files:
-                result_message += "Processed files:\n" + "\n".join(processed_files) + "\n\n"
-            if skipped_files:
-                result_message += "Skipped files:\n" + "\n".join(skipped_files)
-
-            messagebox.showinfo("Upload Result", result_message)
-
-        except Exception as e:
-            error_message = f"An unexpected error occurred: {str(e)}\n\nPlease check the log for more details."
-            messagebox.showerror("Error", error_message)
-            logging.error(f"Error in upload_file: {str(e)}", exc_info=True)
-
-    def process_single_file(self, file_path): #FILE HANDLER FILE
+        else:
+            # The file handler will display an error message if the upload fails.
+            pass
+    
+    def update_restore_database(self): #HOME PAGE FILE
         """
-        Process a single Excel file to read, filter, and insert video performance data into the database.
-
-        Args:
-            file_path (str): The path to the Excel file to process.
-
-        Returns:
-            str: A message indicating the result of the processing.
+        Calls the file handler to restore the database from a selected backup file.
+        Updates the last performance date.
         """
-        try:
-            df = self.data_manager.read_video_performance_excel(file_path)
-            filtered_df = self.data_manager.filter_videos(df)
-            
-            # Check if data already exists for this date
-            date = filtered_df['performance_date'].iloc[0]
-            if self.data_manager.check_existing_data(date):
-                response = messagebox.askyesno("Data Already Exists", 
-                    f"Data for {date} already exists in the database. Do you want to replace it?")
-                if response:
-                    self.data_manager.replace_data_for_date(filtered_df, date)
-                    messagebox.showinfo("Success", f"Data for {date} has been replaced successfully!")
-                    return f"File for {date} processed successfully."
-                else:
-                    return f"Data for {date} already exists in the database. Skipped."        
-            else:
-                self.data_manager.insert_or_update_records(filtered_df)
-                return f"File for {date} processed successfully."
-        except ValueError as ve:
-            return f"Error processing file {os.path.basename(file_path)}: {str(ve)}"
-        except Exception as e:
-            return f"Unexpected error processing file {os.path.basename(file_path)}: {str(e)}"
+        success = self.file_handler.restore_database()
+        if success:
+            latest_date = self.data_manager.get_latest_performance_date()
+            self.last_performance_date.set(f"Last Performance Date: {latest_date}")
+        else:
+            # The file handler will display an error message if the upload fails.
+            pass
+
 
     def search_videos(self): #HOME PAGE FILE
         """
@@ -338,7 +294,7 @@ class TikTokTrackerGUI:
         # Display the video details
         self.display_video_details(video_id)
 
-    def display_video_details(self, video_id):
+    def display_video_details(self, video_id): #HOME PAGE FILE
         """
         Display the details of a specific video in the details text widget.
 
@@ -551,59 +507,6 @@ class TikTokTrackerGUI:
             data = self.data_manager.get_time_series_data(video_id, db_metric)
             self.plotter.plot_metric(data, metric)
             self.plotter.embed_plot(self.master)
-
-    def clear_video_performance(self): #FILE HANDLER FILE
-        """
-        Clear video performance data for a specified date after user confirmation.
-        Ensures data integrity by creating a backup before deletion.
-        """
-        # Create a simple dialog to get the date, specifying the parent window
-        date = simpledialog.askstring("Clear Video Performance", "Enter date to clear (YYYY-MM-DD):", parent=self.master)
-        if not date:
-            return
-
-        try:
-            # Validate date format
-            datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.", parent=self.master)
-            return
-
-        try:
-            result = self.data_manager.clear_data_for_date(date)
-            if result:
-                messagebox.showinfo("Success", f"Data for {date} has been cleared. A backup was created before clearing.", parent=self.master)
-            else:
-                messagebox.showinfo("Info", f"No data found for {date}.", parent=self.master)
-        except Exception as e:
-            error_message = f"An error occurred while clearing data: {str(e)}\n\nPlease check the log for more details."
-            messagebox.showerror("Error", error_message, parent=self.master)
-            logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)
-
-    def restore_database(self): #FILE HANDLER FILE
-        """
-        Restore the database from a selected backup file and update the UI accordingly.
-        """
-        # Get the directory of the current script
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        # Set the initial directory to the db_backup folder
-        initial_dir = os.path.join(current_dir, 'db_backup')
-        
-        # Open file dialog
-        backup_path = filedialog.askopenfilename(
-            initialdir=initial_dir,
-            title="Select Database Backup",
-            filetypes=[("Database files", "*.db")]
-        )
-        
-        if backup_path:
-            result = self.data_manager.restore_database(backup_path)
-            if result:
-                messagebox.showinfo("Success", "Database restored successfully.")
-                latest_date = self.data_manager.get_latest_performance_date()
-                self.last_performance_date.set(f"Last Performance Date: {latest_date}")
-            else:
-                messagebox.showerror("Error", "Failed to restore database. Check the log for details.")
 
     def load_and_display_all_videos(self): #HOME PAGE FILE
         """
