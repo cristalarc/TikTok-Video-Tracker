@@ -8,6 +8,8 @@ import shutil
 import json
 import re
 import numpy as np
+import tkinter as tk
+from tkinter import messagebox
 
 
 # logging configuration
@@ -506,3 +508,30 @@ class DataManager:
             df['period'] = df['performance_date']
 
         return df
+    
+    def clear_video_performance(self, master):
+        """
+        Clear video performance data for a specified date after user confirmation.
+        Ensures data integrity by creating a backup before deletion.
+        """
+        # Create a simple dialog to get the date, specifying the parent window
+        date = tk.simpledialog.askstring("Clear Video Performance", "Enter date to clear (YYYY-MM-DD):", parent=master)
+        if not date:
+            return
+        try:
+            # Validate date format
+            datetime.strptime(date, "%Y-%m-%d")
+        except ValueError:
+            messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.", parent=master)
+            return
+
+        try:
+            result = self.clear_data_for_date(date)
+            if result:
+                messagebox.showinfo("Success", f"Data for {date} has been cleared. A backup was created before clearing.", parent=master)
+            else:
+                messagebox.showinfo("Info", f"No data found for {date}.", parent=master)
+        except Exception as e:
+            error_message = f"An error occurred while clearing data: {str(e)}\n\nPlease check the log for more details."
+            messagebox.showerror("Error", error_message, parent=master)
+            logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)

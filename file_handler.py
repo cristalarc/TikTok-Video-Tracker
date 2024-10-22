@@ -84,34 +84,6 @@ class FileHandler:
         except Exception as e:
             return f"Unexpected error processing file {os.path.basename(file_path)}: {str(e)}"
 
-    def clear_video_performance(self, master): #MOVE TO DATA MANAGER FILE
-        """
-        Clear video performance data for a specified date after user confirmation.
-        Ensures data integrity by creating a backup before deletion.
-        """
-        # Create a simple dialog to get the date, specifying the parent window
-        date = tk.simpledialog.askstring("Clear Video Performance", "Enter date to clear (YYYY-MM-DD):", parent=master)
-        if not date:
-            return
-
-        try:
-            # Validate date format
-            datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            messagebox.showerror("Error", "Invalid date format. Please use YYYY-MM-DD.", parent=master)
-            return
-
-        try:
-            result = self.data_manager.clear_data_for_date(date)
-            if result:
-                messagebox.showinfo("Success", f"Data for {date} has been cleared. A backup was created before clearing.", parent=master)
-            else:
-                messagebox.showinfo("Info", f"No data found for {date}.", parent=master)
-        except Exception as e:
-            error_message = f"An error occurred while clearing data: {str(e)}\n\nPlease check the log for more details."
-            messagebox.showerror("Error", error_message, parent=master)
-            logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)
-
     def restore_database(self):
         """
         Restore the database from a selected backup file and update the UI accordingly.

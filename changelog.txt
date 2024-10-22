@@ -1,3 +1,14 @@
+[2024-10-22] Refactored File Handling and Data Management
+
+- Moved clear_video_performance method from FileHandler to DataManager:
+  - Removed the method from file_handler.py.
+  - Added the method to the DataManager class in data_manager.py.
+  - Updated the method to use self.conn for database operations.
+
+- Updated TikTokTrackerGUI class in gui.py:
+  - Modified clear_video_performance method to call the new DataManager method.
+  - Removed any remaining references to FileHandler.clear_video_performance.
+
 [2024-10-21] Refactored Context Menu and GUI Interaction
 
 - Created a new ContextMenuManager class in context_menu.py to handle context menu operations:

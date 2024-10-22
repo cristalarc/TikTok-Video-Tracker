@@ -1,5 +1,4 @@
 Refactoring:
-refactor file handler
 Process single file is in gui.py, it should be in data_manager.
 Refactor the file slowly one by one.
 
@@ -59,6 +58,7 @@ To Test:
 
 Refactoring:
 - Does it make sense to ingest data as strings and then convert to floats?
+- There's a warning when ingesting excel files.
 - Consolidate library imports.
 
 Ancilliary

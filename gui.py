@@ -89,7 +89,7 @@ class TikTokTrackerGUI:
         self.upload_button = ttk.Button(self.top_frame, text="Upload Excel File", command=self.update_video_performance)
         self.upload_button.pack(side=tk.LEFT, padx=5)
 
-        self.clear_data_button = ttk.Button(self.top_frame, text="Clear Video Performance", command=lambda: self.file_handler.clear_video_performance(self.master))
+        self.clear_data_button = ttk.Button(self.top_frame, text="Clear Video Performance", command=lambda: self.data_manager.clear_video_performance(self.master))
         self.clear_data_button.pack(side=tk.LEFT, padx=5)
 
         self.restore_button = ttk.Button(self.top_frame, text="Restore Database", command=self.update_restore_database)
