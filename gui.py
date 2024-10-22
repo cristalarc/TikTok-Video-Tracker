@@ -1,15 +1,14 @@
 #gui.py is the main file that handles the GUI and the interaction between the different components of the app.
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox, simpledialog
+from tkinter import ttk, messagebox
 import logging
 from data_manager import DataManager
 from plotter import Plotter
-from datetime import datetime
 from settings_manager import SettingsManager
 from settings_window import SettingsWindow 
 from trending_page import TrendingPage
 from file_handler import FileHandler
-import os
+from context_menu import ContextMenuManager
 import webbrowser
 
 # logging configuration
@@ -35,8 +34,9 @@ class TikTokTrackerGUI:
         self.settings_manager = SettingsManager(self.data_manager)
         self.trending_page = TrendingPage(self.master, self.clear_page)
         self.file_handler = FileHandler(self.data_manager)
+        self.create_widgets() # Create before context menu
+        self.setup_context_menu()  # Set up context menu after creating widgets
         self.create_menu()
-        self.create_widgets()
         self.load_and_display_all_videos()
         self.show_home()
 
@@ -63,6 +63,13 @@ class TikTokTrackerGUI:
         Open the settings window.
         """
         SettingsWindow(self.master, self.data_manager, self.settings_manager)
+
+    def setup_context_menu(self):
+        """Set up the context menu after widgets are created."""
+        # We need to create the context menu after the widgets are created because the context menu needs to know about the treeview widget.
+        self.context_menu_manager = ContextMenuManager(self.master, self.data_manager, self.plotter, self.results_tree)
+        self.context_menu_manager.create_home_view_context_menu()
+        self.results_tree.bind("<Button-3>", self.context_menu_manager.show_context_menu_home_view)
 
     def create_widgets(self):
         """
@@ -119,8 +126,6 @@ class TikTokTrackerGUI:
         self.results_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.results_tree.configure(yscrollcommand=self.results_scrollbar.set)
         self.results_tree.bind("<<TreeviewSelect>>", self.on_video_select)
-        self.create_context_menu()
-        self.results_tree.bind("<Button-3>", self.show_context_menu)
 
         # Details Frame
         self.details_frame = ttk.LabelFrame(self.middle_frame, text="Video Details")
@@ -174,26 +179,7 @@ class TikTokTrackerGUI:
         self.middle_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
         self.bottom_frame.pack(pady=10, padx=10, fill=tk.X)
 
-    def create_context_menu(self): #CONTEXT MENU FILE. The page needs to know which context menu to call
-        """
-        Create a context menu with options such as copying Video ID and plotting metrics.
-        """
-        self.context_menu = tk.Menu(self.master, tearoff=0)
-        self.context_menu.add_command(label="Copy Video ID", command=self.copy_selected_video_id)
-        self.context_menu.add_command(label="Open Video in Browser", command=self.open_selected_video_in_browser)
-        
-        # Create a submenu for Plot Metric
-        self.plot_submenu = tk.Menu(self.context_menu, tearoff=0)
-        self.context_menu.add_cascade(label="Plot Metric", menu=self.plot_submenu)
-        
-        # Add metric options to the submenu
-        metrics = ('VV', 'Likes', 'Comments', 'Shares', 'Product Impressions', 
-                'Product Clicks', 'Orders', 'Unit Sales', 'Video Revenue ($)', 
-                'CTR', 'V-to-L rate', 'Video Finish Rate', 'CTOR')
-        for metric in metrics:
-            self.plot_submenu.add_command(label=metric, command=lambda m=metric: self.plot_metric_from_context(m))
-
-    def show_context_menu(self, event): #STAYS
+    def show_context_menu(self, event): #HOME PAGE FILE rename to show_context_menu_home
         """
         Display the context menu at the cursor's position if a treeview item is clicked.
 
@@ -208,29 +194,6 @@ class TikTokTrackerGUI:
             self.context_menu.tk_popup(event.x_root, event.y_root)
         finally:
             self.context_menu.grab_release()
-
-    def copy_selected_video_id(self): #CONTEXT MENU FILE
-        """
-        Copy the Video ID of the selected video to the clipboard.
-        """
-        selected_item = self.results_tree.selection()[0]
-        video_id = self.results_tree.item(selected_item)['values'][0]
-        self.master.clipboard_clear()
-        self.master.clipboard_append(video_id)
-
-    def open_selected_video_in_browser(self): #CONTEXT MENU FILE
-        """
-        Open the selected video in the default web browser using the video ID and creator name.
-        """
-        selected_item = self.results_tree.selection()[0]
-        video_id = self.results_tree.item(selected_item)['values'][0]
-        creator_name = self.results_tree.item(selected_item)['values'][3]  # Assuming 'Creator' is the 4th column
-        
-        # Remove '@' symbol if it's already in the creator_name
-        creator_name = creator_name.lstrip('@')
-        
-        url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
-        webbrowser.open(url)
 
     def update_video_performance(self): #HOME PAGE FILE
         """
@@ -469,44 +432,6 @@ class TikTokTrackerGUI:
         # Plot the data with the selected timeframe
         self.plotter.plot_dual_metric(data1, metric1, data2, metric2, timeframe=timeframe)
         self.plotter.embed_plot(self.master)
-
-    def plot_metric_from_context(self, metric): #HOME PAGE FILE
-        """
-        Plot a selected metric from the context menu for the selected video.
-
-        Args:
-            metric (str): The metric to plot.
-        """
-        selected_items = self.results_tree.selection()
-        if selected_items:
-            video_id = self.results_tree.item(selected_items[0])['values'][0]
-            
-            # Convert display metric name to database column name
-            metric_mapping = {
-                'VV': 'vv',
-                'Likes': 'likes',
-                'Comments': 'comments',
-                'Shares': 'shares',
-                'Product Impressions': 'product_impressions',
-                'Product Clicks': 'product_clicks',
-                'Orders': 'orders',
-                'Unit Sales': 'unit_sales',
-                'Video Revenue ($)': 'video_revenue',
-                'CTR': 'ctr',
-                'V-to-L rate': 'v_to_l_rate',
-                'Video Finish Rate': 'video_finish_rate',
-                'CTOR': 'ctor'
-            }
-            db_metric = metric_mapping.get(metric)
-            if not db_metric:
-                messagebox.showwarning("Warning", "Invalid metric selected.")
-                return
-            
-            # Clear existing plot and widgets
-            self.plotter.clear_plot()
-            data = self.data_manager.get_time_series_data(video_id, db_metric)
-            self.plotter.plot_metric(data, metric)
-            self.plotter.embed_plot(self.master)
 
     def load_and_display_all_videos(self): #HOME PAGE FILE
         """

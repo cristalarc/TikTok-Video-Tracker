@@ -1,4 +1,5 @@
 Refactoring:
+refactor file handler
 Process single file is in gui.py, it should be in data_manager.
 Refactor the file slowly one by one.
 
