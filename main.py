@@ -1,5 +1,5 @@
 import tkinter as tk
-from gui import TikTokTrackerGUI
+from main_gui import TikTokTrackerGUI
 import os
 import platform
 

@@ -1,8 +1,5 @@
-Refactoring:
-Process single file is in gui.py, it should be in data_manager.
-Refactor the file slowly one by one.
-
 Create a QA list for the app.
+Save DBs in data folder
 
 your_project/
 │
@@ -11,15 +8,23 @@ your_project/
 │   ├── home_view.py
 │   ├── trending_page.py
 │   ├── settings_window.py
+│   ├── context_menu.py
 │   └── main_gui.py  # This is where TikTokTrackerGUI is defined
 │
-├── data_manager/
+├── processes/
 │   ├── __init__.py
-│   └── data_manager.py
+│   ├── data_manager.py
+│   ├── file_handler.py
+│   └── settings_manager.py
 │
 ├── plotter/
 │   ├── __init__.py
 │   └── plotter.py
+│
+├── data/
+│   ├── settings.json
+│   ├── tiktok_tracker.db
+│   └── db_backup/
 │
 └── main.py  # Entry point for running the app
 
