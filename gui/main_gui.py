@@ -5,10 +5,10 @@ from processes import DataManager
 from plotter import Plotter
 from processes import SettingsManager
 from processes import FileHandler
-from gui import SettingsWindow 
-from gui import TrendingPage
-from gui import ContextMenuManager
-from gui import HomeView
+from .settings_window import SettingsWindow 
+from .trending_page import TrendingPage
+from .context_menu import ContextMenuManager
+from .home_view import HomeView
 
 # logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
