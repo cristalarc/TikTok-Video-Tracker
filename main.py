@@ -1,7 +1,7 @@
 import tkinter as tk
-from main_gui import TikTokTrackerGUI
 import os
 import platform
+from gui.main_gui import TikTokTrackerGUI
 
 def main():
     # Ensure db_backup folder exists

@@ -1,14 +1,14 @@
 #gui.py is the main file that handles the GUI and the interaction between the different components of the app.
 import tkinter as tk
 import logging
-from data_manager import DataManager
+from processes import DataManager
 from plotter import Plotter
-from settings_manager import SettingsManager
-from settings_window import SettingsWindow 
-from trending_page import TrendingPage
-from file_handler import FileHandler
-from context_menu import ContextMenuManager
-from home_view import HomeView
+from processes import SettingsManager
+from processes import FileHandler
+from gui import SettingsWindow 
+from gui import TrendingPage
+from gui import ContextMenuManager
+from gui import HomeView
 
 # logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
