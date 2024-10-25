@@ -1,3 +1,32 @@
+[2024-10-24] Refactored File Structure and Settings Management
+
+- Updated project file structure:
+  - Moved settings.json and tiktok_tracker.db from root to the data folder.
+  - Relocated database backups to data/db_backup instead of the root directory.
+
+- Created a new config.py file:
+  - Centralized path definitions for data files and directories.
+  - Implemented automatic creation of necessary directories.
+
+- Updated main.py:
+  - Removed redundant directory creation code.
+  - Imported necessary paths from config.py.
+
+- Refactored DataManager class in processes/data_manager.py:
+  - Updated file paths to use new locations defined in config.py.
+  - Implemented a more efficient settings management system:
+    - Added load_settings method to initialize settings from file.
+    - Created update_setting method for individual setting updates.
+    - Implemented save_settings method to persist all settings at once.
+    - Added get_setting method to retrieve individual settings.
+    - Kept original setting methods (save_vv_threshold, set_week_start) for backward compatibility.
+
+- Updated processes/settings_manager.py:
+  - Modified to use new SETTINGS_FILE path from config.py.
+
+- Updated processes/file_handler.py:
+  - Adjusted database and backup paths to use new locations.
+
 [2024-10-23] Small changes to file structure
 
 [2024-10-22] Refactored File Handling and Data Management

@@ -5,6 +5,7 @@ from tkinter import filedialog, messagebox
 import logging
 import os
 from datetime import datetime
+from config import DB_BACKUP_DIR
 
 class FileHandler:
     def __init__(self, data_manager):
@@ -88,10 +89,8 @@ class FileHandler:
         """
         Restore the database from a selected backup file and update the UI accordingly.
         """
-        # Get the directory of the current script
-        current_dir = os.path.dirname(os.path.abspath(__file__))
         # Set the initial directory to the db_backup folder
-        initial_dir = os.path.join(current_dir, 'db_backup')
+        initial_dir = DB_BACKUP_DIR
         
         # Open file dialog
         backup_path = filedialog.askopenfilename(

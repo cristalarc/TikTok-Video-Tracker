@@ -10,25 +10,27 @@ import re
 import numpy as np
 import tkinter as tk
 from tkinter import messagebox
+from config import DATABASE_FILE, SETTINGS_FILE, DB_BACKUP_DIR
 
 
 # logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class DataManager:
-    def __init__(self, db_path='tiktok_tracker.db'):
-        self.conn = sqlite3.connect(db_path)
+    def __init__(self):
+        self.conn = sqlite3.connect(DATABASE_FILE)
         self.create_tables()
         self.migrate_database()
         self.load_settings() # Load all settings
 
     def load_settings(self):
         try:
-            with open('settings.json', 'r') as f:
+            with open(SETTINGS_FILE, 'r') as f:
                 settings = json.load(f)
                 self.vv_threshold = settings.get('vv_threshold', 4000)
                 self.week_start = settings.get('week_start', 'Sunday')
         except FileNotFoundError:
+            # If the file doesn't exist, return default settings
             self.vv_threshold = 4000
             self.week_start = 'Sunday'
 
@@ -37,7 +39,7 @@ class DataManager:
             'vv_threshold': self.vv_threshold,
             'week_start': self.week_start
         }
-        with open('settings.json', 'w') as f:
+        with open(SETTINGS_FILE, 'w') as f:
             json.dump(settings, f)
 
     def set_vv_threshold(self, threshold):
@@ -50,27 +52,11 @@ class DataManager:
         self.week_start = week_start
         self.save_settings()
 
-    def save_vv_threshold(self):
-        with open('settings.json', 'w') as f:
-            json.dump({'vv_threshold': self.vv_threshold}, f)
-
-    def load_vv_threshold(self):
-        try:
-            with open('settings.json', 'r') as f:
-                settings = json.load(f)
-                return settings.get('vv_threshold', 4000)
-        except FileNotFoundError:
-            return 4000
-
     def backup_database(self):
-        # Create backup directory if it doesn't exist
-        backup_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'db_backup')
-        os.makedirs(backup_dir, exist_ok=True)
-
         # Generate backup filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_filename = f"tiktok_tracker_backup_{timestamp}.db"
-        backup_path = os.path.join(backup_dir, backup_filename)
+        backup_path = os.path.join(DB_BACKUP_DIR, backup_filename)
 
         try:
             # Create a new connection to the backup database
@@ -348,7 +334,7 @@ class DataManager:
             self.conn.execute('SELECT 1')
         except (AttributeError, sqlite3.ProgrammingError):
             # If self.conn is None or closed, create a new connection
-            self.conn = sqlite3.connect('tiktok_tracker.db')
+            self.conn = sqlite3.connect(DATABASE_FILE)
 
     def restore_database(self, backup_path):
         try:
@@ -356,10 +342,10 @@ class DataManager:
             self.conn.close()
             
             # Replace the current database with the backup
-            shutil.copy2(backup_path, 'tiktok_tracker.db')
+            shutil.copy2(backup_path, DATABASE_FILE)
             
             # Reopen the connection
-            self.conn = sqlite3.connect('tiktok_tracker.db')
+            self.conn = sqlite3.connect(DATABASE_FILE)
             
             logging.info(f"Database restored from {backup_path}")
             return True

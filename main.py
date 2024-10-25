@@ -2,11 +2,9 @@ import tkinter as tk
 import os
 import platform
 from gui.main_gui import TikTokTrackerGUI
+from config import DATA_DIR, DB_BACKUP_DIR
 
 def main():
-    # Ensure db_backup folder exists
-    os.makedirs('db_backup', exist_ok=True)
-    
     root = tk.Tk()
     if platform.system() == "Windows":
         root.state('zoomed')

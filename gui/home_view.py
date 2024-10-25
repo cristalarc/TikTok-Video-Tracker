@@ -147,7 +147,7 @@ class HomeView:
         else:
             # The file handler will display an error message if the upload fails.
             pass
-    
+        
     def search_videos_home_view(self):
         """
         Search for videos based on the user's query and display the results in the treeview.

@@ -13,7 +13,7 @@ class SettingsManager:
 
     def save_settings_to_storage(self, vv_threshold, week_start):
         """
-        Save the user's settings to the DataManager.
+        Save the user's settings to the DataManager by calling the DataManager's methods.
 
         Args:
             vv_threshold (int): The video view ingestion threshold.

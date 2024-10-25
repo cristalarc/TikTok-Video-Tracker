@@ -1,33 +1,3 @@
-Create a QA list for the app.
-Save DBs in data folder
-
-your_project/
-│
-├── gui/
-│   ├── __init__.py
-│   ├── home_view.py
-│   ├── trending_page.py
-│   ├── settings_window.py
-│   ├── context_menu.py
-│   └── main_gui.py  # This is where TikTokTrackerGUI is defined
-│
-├── processes/
-│   ├── __init__.py
-│   ├── data_manager.py
-│   ├── file_handler.py
-│   └── settings_manager.py
-│
-├── plotter/
-│   ├── __init__.py
-│   └── plotter.py
-│
-├── data/
-│   ├── settings.json
-│   ├── tiktok_tracker.db
-│   └── db_backup/
-│
-└── main.py  # Entry point for running the app
-
 Trending Section:
 Trending Section Descrtion:
 The Trending Section should display videos that are trending for a given day according to the following key metrics, Views, Shares, Comments, GMV, CTR, CTOR, Video Finish Rate.
@@ -55,11 +25,13 @@ Improvements:
 -Interactive Plots: Explore adding interactive features like zooming or hovering to see data values using libraries like mplcursors (already used in your code).
 -Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
 
+
 Bugs:
 To Test:
     Monthly aggregation plotting.
     There's a warning when plotting dual metrics.
         UserWarning: Selection.target.index is deprecated and will be removed in the future; use Selection.index instead.
+When clearing performance, the Last Performance Data is not being updated.
 
 Refactoring:
 - Does it make sense to ingest data as strings and then convert to floats?
@@ -68,6 +40,7 @@ Refactoring:
 
 Ancilliary
 
+- Add docstrings to all the functions.
 - When I click on a section, like the video details section, that section expands so I an have a better view. Make this a setting.
 - Set threshold for video ingesting. Make this a setting.
 - Database cleanup. When an ingested video has had less than 4000 views for more than X time, stop ingesting video.
@@ -83,3 +56,4 @@ Ancilliary
 - Implemment messagebox threading so the process doesn't freeze when uploading a file.
     Implement for the process_single_file function.
 - Review database backup calls/generations. There may be too many.
+- Create a QA list for the app.
