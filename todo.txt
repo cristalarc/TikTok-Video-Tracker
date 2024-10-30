@@ -10,10 +10,7 @@ The Trending section should also have features that allow the following:
 
 The Trending section should in total have three window views. One for the top videos of the selected date, one for the videos overperfoming benchmark, and one for the identified videos that are starting to trend.
 
-
-
 - Add a function that detects when videos are growing in views and send a notification to the user.
-++ Start by separating the Settings behavior from TikTokTrackerGUI
 - Add a function that helps product performance and then show videos that are ourperforming for that product.
 - I want the UI to be adaptive of my PC resolution?
 - Add a Help menu with a link to the readme.
