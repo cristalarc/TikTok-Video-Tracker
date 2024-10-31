@@ -15,6 +15,7 @@ class TrendingPage:
         self.master = master
         self.clear_page_callback = clear_page_callback
         self.current_view = None
+        self.notification_count = 0  # Track number of notifications
         
         # Create main containers
         self.main_frame = None
@@ -23,6 +24,7 @@ class TrendingPage:
         self.date_frame = None
         self.table_frame = None
         self.header_label = None
+        self.notification_button = None
         
         # Store submenu buttons for styling
         self.submenu_buttons = {}
@@ -47,6 +49,10 @@ class TrendingPage:
         style.configure('Header.TLabel', 
                     font=('Helvetica', 12, 'bold'),
                     padding=10)
+        
+        # Create style for notification button
+        style.configure('Notification.TButton',
+                    font=('Helvetica', 10))
 
     def show_trending(self):
         """Display the Trending page."""
@@ -56,6 +62,9 @@ class TrendingPage:
         self.main_frame = ttk.Frame(self.master)
         self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
+
+        # Create top bar with submenu and notifications
+        self.create_top_bar()
         # Create submenu frame
         self.create_submenu()
         
@@ -91,6 +100,29 @@ class TrendingPage:
             )
             btn.pack(side=tk.LEFT, padx=(0 if id_ == 'top_videos' else 5, 5))
             self.submenu_buttons[id_] = btn
+    
+    def create_top_bar(self):
+        """Create the top bar containing submenu and notifications."""
+        top_bar = ttk.Frame(self.main_frame)
+        top_bar.pack(fill=tk.X, pady=(0, 5))
+        
+        # Create submenu frame on the left
+        self.submenu_frame = ttk.Frame(top_bar)
+        self.submenu_frame.pack(side=tk.LEFT, fill=tk.X)
+        
+        # Create notification frame on the right
+        notification_frame = ttk.Frame(top_bar)
+        notification_frame.pack(side=tk.RIGHT, padx=10)
+        
+        # Create notification button
+        self.notification_button = ttk.Button(
+            notification_frame,
+            text=f"Notifications ({self.notification_count})",
+            style='Notification.TButton',
+            command=self.show_notifications
+        )
+        self.notification_button.pack(side=tk.RIGHT)
+
 
     def update_submenu_styling(self, active_view):
         """Update the styling of submenu buttons based on the active view."""
@@ -188,3 +220,49 @@ class TrendingPage:
         formatted_date = selected_date.strftime("%B %d, %Y")
         self.update_header(f"Top Videos for {formatted_date}")
         # TODO: Implement data fetching and table updating logic
+
+    def show_notifications(self):
+        """Show the notifications popup relative to the main window."""
+        # Create a toplevel window for notifications
+        popup = tk.Toplevel(self.master)
+        popup.title("Notifications")
+        popup.geometry("300x400")
+        
+        # Make the window modal
+        popup.transient(self.master)
+        popup.grab_set()
+        
+        # Calculate position relative to main window
+        main_window_x = self.master.winfo_x()
+        main_window_y = self.master.winfo_y()
+        main_window_width = self.master.winfo_width()
+        
+        # Position the popup on the right side of the main window
+        popup_x = main_window_x + main_window_width - 320  # 300px width + 20px padding
+        popup_y = main_window_y + 50  # Offset from top
+        
+        # Set the position
+        popup.geometry(f"+{popup_x}+{popup_y}")
+        
+        # Add a close button
+        ttk.Button(
+            popup,
+            text="Close",
+            command=popup.destroy
+        ).pack(side=tk.BOTTOM, pady=10)
+        
+        # If no notifications
+        if self.notification_count == 0:
+            ttk.Label(
+                popup,
+                text="No new notifications",
+                padding=20
+            ).pack(expand=True)
+        else:
+            # Here you would add actual notifications
+            # This is a placeholder for future implementation
+            ttk.Label(
+                popup,
+                text="Notification content will appear here",
+                padding=20
+            ).pack(expand=True)

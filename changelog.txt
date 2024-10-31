@@ -1,4 +1,33 @@
-[2024-10-24] Enhanced Trending Page UI and Navigation
+[2024-10-31] Added notification system UI to Trending Page
+
+- Added notification system:
+  - Created notification button in top-right corner showing current notification count
+  - Implemented notification popup window that appears on the same screen as the main application
+  - Added placeholder for future notification content display
+  - Ensured proper modal behavior for notification window
+
+[2024-10-24] Refactored File Structure and Settings Management
+
+- Updated project file structure:
+  - Moved settings.json and tiktok_tracker.db from root to the data folder
+  - Relocated database backups to data/db_backup instead of the root directory
+
+- Created a new config.py file:
+  - Centralized path definitions for data files and directories
+  - Implemented automatic creation of necessary directories
+
+- Refactored DataManager class in processes/data_manager.py:
+  - Updated file paths to use new locations defined in config.py
+  - Implemented a more efficient settings management system:
+    - Added load_settings method to initialize settings from file
+    - Created update_setting method for individual setting updates
+    - Implemented save_settings method to persist all settings at once
+    - Added get_setting method to retrieve individual settings
+    - Kept original setting methods for backward compatibility
+
+These changes improve the organization of the project, enhance the user interface of the Trending page, and add a notification system for future feature implementation.
+
+[2024-10-30] Enhanced Trending Page UI and Navigation
 
 - Created new TrendingPage class with improved UI structure:
   - Implemented submenu navigation with three sections:
