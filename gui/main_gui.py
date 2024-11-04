@@ -31,7 +31,7 @@ class TikTokTrackerGUI:
         self.data_manager = DataManager()
         self.plotter = Plotter()
         self.settings_manager = SettingsManager(self.data_manager)
-        self.trending_page = TrendingPage(self.master, self.clear_page)
+        self.trending_page = TrendingPage(self.master, self.clear_page, self.data_manager)
         self.file_handler = FileHandler(self.data_manager)
         self.home_view = HomeView(self.master, self.data_manager, self.file_handler, self.plotter)
         self.setup_context_menu()  # Set up context menu after creating widgets

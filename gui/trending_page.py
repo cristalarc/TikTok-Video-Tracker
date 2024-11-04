@@ -4,7 +4,7 @@ from tkcalendar import DateEntry
 from datetime import datetime
 
 class TrendingPage:
-    def __init__(self, master, clear_page_callback):
+    def __init__(self, master, clear_page_callback, data_manager):
         """
         Initialize the TrendingPage.
 
@@ -14,6 +14,7 @@ class TrendingPage:
         """
         self.master = master
         self.clear_page_callback = clear_page_callback
+        self.data_manager = data_manager
         self.current_view = None
         self.notification_count = 0  # Track number of notifications
         
@@ -193,10 +194,21 @@ class TrendingPage:
         columns = ('Video ID', 'Views', 'Shares', 'Comments', 'GMV', 'CTR', 'CTOR', 'Finish Rate')
         self.tree = ttk.Treeview(self.table_frame, columns=columns, show='headings')
         
-        # Set column headings
-        for col in columns:
-            self.tree.heading(col, text=col)
-            self.tree.column(col, width=100)  # Adjust width as needed
+        # Set column headings and formats
+        column_formats = {
+            'Video ID': {'width': 100, 'anchor': 'w'},
+            'Views': {'width': 80, 'anchor': 'e'},
+            'Shares': {'width': 80, 'anchor': 'e'},
+            'Comments': {'width': 80, 'anchor': 'e'},
+            'GMV': {'width': 100, 'anchor': 'e'},
+            'CTR': {'width': 80, 'anchor': 'e'},
+            'CTOR': {'width': 80, 'anchor': 'e'},
+            'Finish Rate': {'width': 100, 'anchor': 'e'}
+        }
+        
+        for col, format_info in column_formats.items():
+            self.tree.heading(col, text=col, command=lambda c=col: self.treeview_sort_column(c))
+            self.tree.column(col, width=format_info['width'], anchor=format_info['anchor'])
         
         # Add scrollbars
         y_scrollbar = ttk.Scrollbar(self.table_frame, orient=tk.VERTICAL, command=self.tree.yview)
@@ -219,7 +231,40 @@ class TrendingPage:
         selected_date = self.date_picker.get_date()
         formatted_date = selected_date.strftime("%B %d, %Y")
         self.update_header(f"Top Videos for {formatted_date}")
-        # TODO: Implement data fetching and table updating logic
+        
+        # Clear existing items
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        
+        # Get data from database
+        videos = self.data_manager.get_videos_by_date(selected_date)
+        
+        # Insert data into tree
+        for video in videos:
+            formatted_row = (
+                video[0],  # Video ID
+                f"{video[1]:,}",  # Views
+                f"{video[2]:,}",  # Shares
+                f"{video[3]:,}",  # Comments
+                f"${video[4]:,.2f}",  # GMV
+                f"{video[5]}%",  # CTR
+                f"{video[6]}%",  # CTOR
+                f"{video[7]}%"   # Finish Rate
+            )
+            self.tree.insert('', tk.END, values=formatted_row)
+
+    def treeview_sort_column(self, col):
+        """Sort tree contents when a column header is clicked."""
+        l = [(self.tree.set(k, col), k) for k in self.tree.get_children('')]
+        try:
+            # Try to convert to float for numeric sorting
+            l.sort(key=lambda t: float(t[0].replace(',', '').replace('$', '').replace('%', '')))
+        except ValueError:
+            # Fall back to string sorting if conversion fails
+            l.sort()
+            
+        for index, (val, k) in enumerate(l):
+            self.tree.move(k, '', index)
 
     def show_notifications(self):
         """Show the notifications popup relative to the main window."""

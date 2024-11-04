@@ -521,3 +521,36 @@ class DataManager:
             error_message = f"An error occurred while clearing data: {str(e)}\n\nPlease check the log for more details."
             messagebox.showerror("Error", error_message, parent=master)
             logging.error(f"Error in clear_video_performance: {str(e)}", exc_info=True)
+    
+    def get_videos_by_date(self, date):
+        """
+        Retrieve video performance data for a specific date.
+        
+        Args:
+            date (datetime): The date to fetch data for
+        
+        Returns:
+            list: List of tuples containing video performance data
+        """
+        query = """
+            SELECT 
+                video_id,
+                vv as views,
+                shares,
+                comments,
+                video_revenue as gmv,
+                ctr,
+                ctor,
+                video_finish_rate as finish_rate
+            FROM daily_performance
+            WHERE date(performance_date) = date(?)
+            ORDER BY views DESC
+        """
+        
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(query, (date.strftime('%Y-%m-%d'),))
+            return cursor.fetchall()
+        except sqlite3.Error as e:
+            logging.error(f"Database error: {e}")
+            return []

@@ -1,3 +1,28 @@
+[2024-11-04] Enhanced Trending Page Data Display and UI
+
+- Implemented data retrieval and display for Top Videos section:
+  - Added get_videos_by_date method to DataManager class to fetch performance data for specific dates
+  - Created table structure with sortable columns for video metrics:
+    - Video ID
+    - Views (formatted with thousands separator)
+    - Shares (formatted with thousands separator)
+    - Comments (formatted with thousands separator)
+    - GMV (formatted as currency)
+    - CTR (formatted as percentage)
+    - CTOR (formatted as percentage)
+    - Finish Rate (formatted as percentage)
+  - Implemented automatic data refresh when date is changed
+
+- Enhanced table functionality:
+  - Added horizontal and vertical scrollbars for better navigation
+  - Implemented column sorting for all metrics
+  - Added proper number formatting for better readability
+
+- Improved notification system UI:
+  - Fixed notification window positioning to appear on the same screen as the main application
+  - Enhanced modal behavior for better user interaction
+  - Added placeholder for future notification content
+
 [2024-10-31] Added notification system UI to Trending Page
 
 - Added notification system:

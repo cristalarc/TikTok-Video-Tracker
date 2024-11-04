@@ -1,3 +1,7 @@
+Top Videos
+Add right click context menu for copy, except plotting.
+Add Last performance date to the top of the trending page.
+
 Trending Section:
 Trending Section Descrtion:
 The Trending Section should display videos that are trending for a given day according to the following key metrics, Views, Shares, Comments, GMV, CTR, CTOR, Video Finish Rate.
