@@ -50,7 +50,7 @@ class TikTokTrackerGUI:
         menubar.add_command(label="Home", command=self.call_home_view)
 
         # Trending menu
-        menubar.add_command(label="Trending", command=self.trending_page.show_trending)
+        menubar.add_command(label="Trending", command=self.trending_page.show_trending_trending_page)
 
         # Settings menu
         settings_menu = tk.Menu(menubar, tearoff=0)

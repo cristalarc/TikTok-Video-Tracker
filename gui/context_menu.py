@@ -1,5 +1,6 @@
 #context_menu.py is used to create a context menu in any relevant page of the app.
 import tkinter as tk
+from tkinter import messagebox
 import webbrowser
 
 class ContextMenuManager:
@@ -98,10 +99,36 @@ class ContextMenuManager:
         """
         selected_item = self.results_tree.selection()[0]
         video_id = self.results_tree.item(selected_item)['values'][0]
-        creator_name = self.results_tree.item(selected_item)['values'][3]
         
-        # Remove '@' symbol if it's already in the creator_name
-        creator_name = creator_name.lstrip('@')
+        # Get video details from database to find creator name
+        video_details = self.data_manager.get_video_details(video_id)
+        if video_details and video_details[3]:  # Index 3 contains creator_name in get_video_details
+            creator_name = str(video_details[3]).lstrip('@')
+            url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
+            webbrowser.open(url)
+        else:
+            messagebox.showerror("Error", "Could not find creator information for this video.")
+
+    def create_trending_view_context_menu(self):
+        """
+        Create a context menu for the trending view with basic options (no plotting).
+        """
+        self.context_menu = tk.Menu(self.master, tearoff=0)
+        self.context_menu.add_command(label="Copy Video ID", command=self.copy_selected_video_id)
+        self.context_menu.add_command(label="Open Video in Browser", command=self.open_selected_video_in_browser)
+
+    def show_context_menu_trending_view(self, event):
+        """
+        Display the context menu at the cursor's position if a treeview item is clicked.
         
-        url = f"https://www.tiktok.com/@{creator_name}/video/{video_id}"
-        webbrowser.open(url)
+        Args:
+            event (tk.Event): The event object containing event data.
+        """
+        item = self.results_tree.identify_row(event.y)
+        if item:
+            self.results_tree.selection_set(item)
+            self.results_tree.focus(item)
+        try:
+            self.context_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.context_menu.grab_release()

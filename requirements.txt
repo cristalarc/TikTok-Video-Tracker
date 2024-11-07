@@ -1,5 +1,7 @@
-pandas==1.5.3
-matplotlib==3.7.1
-openpyxl==3.1.2
-numpy==1.24.3
-mplcursors==0.5.2
+pandas>=1.5.3
+matplotlib>=3.7.1
+openpyxl>=3.1.2
+numpy>=1.24.3
+mplcursors>=0.5.2
+tkcalendar>=1.6.1
+Pillow>=9.5.0

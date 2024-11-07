@@ -1,3 +1,20 @@
+[2024-11-06] Enhanced Context Menu Functionality in Trending Page
+
+- Fixed video browser opening functionality in the Trending Page context menu:
+  - Modified the `open_selected_video_in_browser` method in ContextMenuManager to fetch creator information from database
+  - Added error handling for cases where creator information is not available
+  - Improved type handling to prevent AttributeError with creator name formatting
+
+- Added context menu to Trending Page:
+  - Created simplified context menu without plotting functionality
+  - Implemented video ID copying and browser opening features
+  - Added right-click binding to the trending page's video table
+
+- Added Last Performance Date display to Trending Page:
+  - Integrated last performance date from DataManager
+  - Positioned the date display next to notifications in the top bar
+  - Added consistent styling with notification elements
+
 [2024-11-04] Enhanced Trending Page Data Display and UI
 
 - Implemented data retrieval and display for Top Videos section:

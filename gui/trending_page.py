@@ -2,6 +2,7 @@ from tkinter import ttk
 import tkinter as tk
 from tkcalendar import DateEntry
 from datetime import datetime
+from .context_menu import ContextMenuManager
 
 class TrendingPage:
     def __init__(self, master, clear_page_callback, data_manager):
@@ -32,6 +33,9 @@ class TrendingPage:
         
         # Create the table
         self.tree = None
+
+        # Create context menu manager
+        self.context_menu_manager = None
         
         # Create styles for buttons
         self.setup_styles()
@@ -51,11 +55,13 @@ class TrendingPage:
                     font=('Helvetica', 12, 'bold'),
                     padding=10)
         
-        # Create style for notification button
+        # Create style for notification button and label
         style.configure('Notification.TButton',
                     font=('Helvetica', 10))
+        style.configure('Notification.TLabel',
+                    font=('Helvetica', 10))
 
-    def show_trending(self):
+    def show_trending_trending_page(self):
         """Display the Trending page."""
         self.clear_page_callback()
         
@@ -111,13 +117,22 @@ class TrendingPage:
         self.submenu_frame = ttk.Frame(top_bar)
         self.submenu_frame.pack(side=tk.LEFT, fill=tk.X)
         
-        # Create notification frame on the right
-        notification_frame = ttk.Frame(top_bar)
-        notification_frame.pack(side=tk.RIGHT, padx=10)
+        # Create right-side frame for date and notifications
+        right_frame = ttk.Frame(top_bar)
+        right_frame.pack(side=tk.RIGHT, padx=10)
+        
+        # Add last performance date label
+        latest_date = self.data_manager.get_latest_performance_date()
+        self.last_performance_label = ttk.Label(
+            right_frame,
+            text=f"Last Performance Date: {latest_date}",
+            style='Notification.TLabel'
+        )
+        self.last_performance_label.pack(side=tk.LEFT, padx=(0, 15))
         
         # Create notification button
         self.notification_button = ttk.Button(
-            notification_frame,
+            right_frame,
             text=f"Notifications ({self.notification_count})",
             style='Notification.TButton',
             command=self.show_notifications
@@ -219,6 +234,11 @@ class TrendingPage:
         y_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         x_scrollbar.pack(side=tk.BOTTOM, fill=tk.X)
         self.tree.pack(fill=tk.BOTH, expand=True)
+
+        # Add context menu
+        self.context_menu_manager = ContextMenuManager(self.master, self.data_manager, None, self.tree)
+        self.context_menu_manager.create_trending_view_context_menu()
+        self.tree.bind("<Button-3>", self.context_menu_manager.show_context_menu_trending_view)
 
     def clear_content_frame(self):
         """Clear all widgets from the content frame."""
