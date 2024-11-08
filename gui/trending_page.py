@@ -275,16 +275,32 @@ class TrendingPage:
 
     def treeview_sort_column(self, col):
         """Sort tree contents when a column header is clicked."""
+        # Get current sorting order
+        ascending = True
+        if hasattr(self, '_last_sort'):
+            if self._last_sort == (col, True):
+                ascending = False
+        
         l = [(self.tree.set(k, col), k) for k in self.tree.get_children('')]
         try:
             # Try to convert to float for numeric sorting
-            l.sort(key=lambda t: float(t[0].replace(',', '').replace('$', '').replace('%', '')))
+            # Remove any formatting characters ($, %, ,) before converting
+            l.sort(key=lambda t: float(t[0].replace(',', '').replace('$', '').replace('%', '')), 
+                reverse=not ascending)
         except ValueError:
             # Fall back to string sorting if conversion fails
-            l.sort()
-            
+            l.sort(reverse=not ascending)
+        
+        # Rearrange items in sorted positions
         for index, (val, k) in enumerate(l):
             self.tree.move(k, '', index)
+        
+        # Store the sort state
+        self._last_sort = (col, ascending)
+        
+        # Reverse sort next time if clicked again
+        self.tree.heading(col, 
+            command=lambda c=col: self.treeview_sort_column(c))
 
     def show_notifications(self):
         """Show the notifications popup relative to the main window."""

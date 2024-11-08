@@ -1,3 +1,5 @@
 - Backup folder will be created in the same folder as the script.
 - Percentage based metrics need to be manually set in the plot_metric method.
 - Percentage based metrics time aggregation needs to have formulas manually implemented.
+
+- When a video is ingested, we do not track any data before the ingestion date criteria is met. We dont see for how long the video had views or any performance before ingestion happens. We do can see this if we reingest the data after the video has been added to the video db.

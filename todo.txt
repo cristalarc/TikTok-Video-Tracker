@@ -1,3 +1,6 @@
+I need a search bar in the top videos section.
+Need to handle the NULL values in the top videos section.
+
 Trending Section:
 Trending Section Descrtion:
 The Trending Section should display videos that are trending for a given day according to the following key metrics, Views, Shares, Comments, GMV, CTR, CTOR, Video Finish Rate.
@@ -23,7 +26,6 @@ Improvements:
 -Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
 
 
-Bugs:
 To Test:
     Monthly aggregation plotting.
     There's a warning when plotting dual metrics.
