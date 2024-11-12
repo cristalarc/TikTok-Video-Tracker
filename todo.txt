@@ -1,4 +1,3 @@
-I need a search bar in the top videos section.
 Need to handle the NULL values in the top videos section.
 
 Trending Section:

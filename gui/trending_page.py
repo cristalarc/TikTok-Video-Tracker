@@ -3,6 +3,10 @@ import tkinter as tk
 from tkcalendar import DateEntry
 from datetime import datetime
 from .context_menu import ContextMenuManager
+import logging
+
+# logging configuration
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class TrendingPage:
     def __init__(self, master, clear_page_callback, data_manager):
@@ -20,25 +24,28 @@ class TrendingPage:
         self.notification_count = 0  # Track number of notifications
         
         # Create main containers
-        self.main_frame = None
-        self.submenu_frame = None
-        self.content_frame = None
-        self.date_frame = None
-        self.table_frame = None
-        self.header_label = None
-        self.notification_button = None
+        self.main_frame = ttk.Frame(master)
+        self.main_frame.pack(fill=tk.BOTH, expand=True, pady=0)
         
-        # Store submenu buttons for styling
-        self.submenu_buttons = {}
+        # Create styles for widgets
+        self.setup_styles()
+        
+        # Create the top bar (which now includes the submenu)
+        self.create_top_bar()
+        
+        # Create the content frame
+        self.content_frame = ttk.Frame(self.main_frame)
+        self.content_frame.pack(fill=tk.BOTH, expand=True, pady=0)
         
         # Create the table
         self.tree = None
 
         # Create context menu manager
         self.context_menu_manager = None
-        
-        # Create styles for buttons
-        self.setup_styles()
+
+        # Create search bar
+        self.search_var = tk.StringVar()
+        self.search_var.trace_add("write", self.update_search)
 
     def setup_styles(self):
         """Setup custom styles for widgets."""
@@ -68,12 +75,9 @@ class TrendingPage:
         # Create main frame
         self.main_frame = ttk.Frame(self.master)
         self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        
 
         # Create top bar with submenu and notifications
         self.create_top_bar()
-        # Create submenu frame
-        self.create_submenu()
         
         # Create header label
         self.header_label = ttk.Label(self.main_frame, style='Header.TLabel')
@@ -85,60 +89,85 @@ class TrendingPage:
         
         # Show Top Videos by default
         self.show_top_videos()
-
-    def create_submenu(self):
-        """Create the submenu with three options."""
-        self.submenu_frame = ttk.Frame(self.main_frame)
-        self.submenu_frame.pack(fill=tk.X, pady=(0, 5))
-        
-        # Create submenu buttons
-        button_configs = [
-            ('top_videos', 'Top Videos', self.show_top_videos),
-            ('outperforming', 'Outperforming Benchmark', self.show_outperforming),
-            ('trending', 'Starting to Trend', self.show_starting_trend)
-        ]
-        
-        for id_, text, command in button_configs:
-            btn = ttk.Button(
-                self.submenu_frame,
-                text=text,
-                command=command,
-                style='Submenu.TButton'
-            )
-            btn.pack(side=tk.LEFT, padx=(0 if id_ == 'top_videos' else 5, 5))
-            self.submenu_buttons[id_] = btn
     
     def create_top_bar(self):
         """Create the top bar containing submenu and notifications."""
-        top_bar = ttk.Frame(self.main_frame)
-        top_bar.pack(fill=tk.X, pady=(0, 5))
+        # Create top bar frame
+        self.top_bar = ttk.Frame(self.main_frame)
+        self.top_bar.pack(fill=tk.X, pady=(0, 0))
         
-        # Create submenu frame on the left
-        self.submenu_frame = ttk.Frame(top_bar)
-        self.submenu_frame.pack(side=tk.LEFT, fill=tk.X)
+        # Create single frame for all top bar elements
+        nav_frame = ttk.Frame(self.top_bar)
+        nav_frame.pack(fill=tk.X)
         
-        # Create right-side frame for date and notifications
-        right_frame = ttk.Frame(top_bar)
-        right_frame.pack(side=tk.RIGHT, padx=10)
+        # Initialize submenu buttons dictionary
+        self.submenu_buttons = {}
         
-        # Add last performance date label
-        latest_date = self.data_manager.get_latest_performance_date()
-        self.last_performance_label = ttk.Label(
-            right_frame,
-            text=f"Last Performance Date: {latest_date}",
-            style='Notification.TLabel'
-        )
-        self.last_performance_label.pack(side=tk.LEFT, padx=(0, 15))
+        # Create submenu buttons directly in nav_frame
+        buttons = [
+            ("Top Videos", self.show_top_videos),
+            ("Outperforming Benchmark", self.show_outperforming),
+            ("Starting to Trend", self.show_starting_trend)
+        ]
         
-        # Create notification button
+        for text, command in buttons:
+            btn = ttk.Button(
+                nav_frame,
+                text=text,
+                style='Submenu.TButton',
+                command=command
+            )
+            btn.pack(side=tk.LEFT, padx=(0, 5))
+            self.submenu_buttons[text.lower().replace(' ', '_')] = btn
+        
+        # Create a frame for right-side elements to ensure proper spacing
+        right_frame = ttk.Frame(nav_frame)
+        right_frame.pack(side=tk.RIGHT)
+        
+        # Create notification button first (rightmost element)
         self.notification_button = ttk.Button(
             right_frame,
             text=f"Notifications ({self.notification_count})",
             style='Notification.TButton',
             command=self.show_notifications
         )
-        self.notification_button.pack(side=tk.RIGHT)
+        self.notification_button.pack(side=tk.RIGHT, padx=(0, 0))
+        
+        # Add Last Performance Date
+        try:
+            last_date = self.data_manager.get_latest_performance_date()
+            if last_date:
+                ttk.Label(
+                    right_frame,
+                    text=f"Last Performance Date: {last_date}"
+                ).pack(side=tk.RIGHT, padx=(0, 10))
+        except Exception as e:
+            logging.error(f"Error displaying last performance date: {e}")
 
+    def update_search(self, *args):
+        """Filter the table to show only matching videos."""
+        search_term = self.search_var.get().lower().strip()
+        
+        # Store current videos if not already stored
+        if not hasattr(self, '_current_videos'):
+            self._current_videos = []
+            for item in self.tree.get_children():
+                self._current_videos.append(self.tree.item(item)['values'])
+        
+        # Clear the current table
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+        
+        # If search is empty, show all videos
+        if not search_term:
+            for video in self._current_videos:
+                self.tree.insert('', tk.END, values=video)
+            return
+        
+        # Show only matching videos
+        for video in self._current_videos:
+            if search_term in str(video[0]).lower():  # video[0] is Video ID
+                self.tree.insert('', tk.END, values=video)
 
     def update_submenu_styling(self, active_view):
         """Update the styling of submenu buttons based on the active view."""
@@ -156,28 +185,75 @@ class TrendingPage:
         self.current_view = "top_videos"
         self.update_submenu_styling('top_videos')
         
-        # Update header with current date
-        current_date = datetime.now().strftime("%B %d, %Y")
-        self.update_header(f"Top Videos for {current_date}")
+        # Create date and search container
+        controls_frame = ttk.Frame(self.content_frame)
+        controls_frame.pack(fill=tk.X, pady=(0, 0))
         
-        self.create_date_picker()
+        # Add date picker
+        date_frame = ttk.Frame(controls_frame)
+        date_frame.pack(side=tk.LEFT)
+        
+        ttk.Label(date_frame, text="Select Date:").pack(side=tk.LEFT)
+        self.date_picker = DateEntry(date_frame, width=12, background='darkblue',
+                                foreground='white', borderwidth=2)
+        self.date_picker.pack(side=tk.LEFT, padx=(5, 20))
+        self.date_picker.bind("<<DateEntrySelected>>", self.update_top_videos)
+        
+        # Add search bar
+        search_frame = ttk.Frame(controls_frame)
+        search_frame.pack(side=tk.LEFT)
+        
+        ttk.Label(search_frame, text="Search:").pack(side=tk.LEFT)
+        search_entry = ttk.Entry(search_frame, textvariable=self.search_var, width=20)
+        search_entry.pack(side=tk.LEFT, padx=(5, 0))
+        
+        # Create header label
+        self.header_label = ttk.Label(self.content_frame, style='Header.TLabel')
+        self.header_label.pack(fill=tk.X, pady=(5, 0))
+        
+        # Create and show the table
         self.create_video_table()
+        self.update_top_videos()
 
     def show_outperforming(self):
         """Show the Outperforming Benchmark view."""
         self.clear_content_frame()
         self.current_view = "outperforming"
         self.update_submenu_styling('outperforming')
+        
+        # Create header label
+        self.header_label = ttk.Label(self.content_frame, style='Header.TLabel')
+        self.header_label.pack(fill=tk.X, pady=(5, 0))
+        
+        # Update header text
         self.update_header("Videos Outperforming Benchmark")
-        ttk.Label(self.content_frame, text="Outperforming Benchmark (Under Construction)").pack(pady=20)
+        
+        # Add placeholder content
+        ttk.Label(
+            self.content_frame,
+            text="Outperforming Benchmark (Under Construction)",
+            padding=20
+        ).pack(expand=True)
 
     def show_starting_trend(self):
         """Show the Starting to Trend view."""
         self.clear_content_frame()
         self.current_view = "starting_trend"
-        self.update_submenu_styling('trending')
+        self.update_submenu_styling('starting_trend')
+        
+        # Create header label
+        self.header_label = ttk.Label(self.content_frame, style='Header.TLabel')
+        self.header_label.pack(fill=tk.X, pady=(5, 10))
+        
+        # Update header text
         self.update_header("Videos Starting to Trend")
-        ttk.Label(self.content_frame, text="Starting to Trend (Under Construction)").pack(pady=20)
+        
+        # Add placeholder content
+        ttk.Label(
+            self.content_frame,
+            text="Starting to Trend (Under Construction)",
+            padding=20
+        ).pack(expand=True)
 
     def create_date_picker(self):
         """Create the date picker frame."""
@@ -225,6 +301,9 @@ class TrendingPage:
             self.tree.heading(col, text=col, command=lambda c=col: self.treeview_sort_column(c))
             self.tree.column(col, width=format_info['width'], anchor=format_info['anchor'])
         
+        # Configure tag for search highlighting
+        self.tree.tag_configure('match', background='yellow')
+
         # Add scrollbars
         y_scrollbar = ttk.Scrollbar(self.table_frame, orient=tk.VERTICAL, command=self.tree.yview)
         x_scrollbar = ttk.Scrollbar(self.table_frame, orient=tk.HORIZONTAL, command=self.tree.xview)
@@ -242,9 +321,12 @@ class TrendingPage:
 
     def clear_content_frame(self):
         """Clear all widgets from the content frame."""
-        if self.content_frame:
+        if hasattr(self, 'content_frame') and self.content_frame:
             for widget in self.content_frame.winfo_children():
                 widget.destroy()
+        else:
+            self.content_frame = ttk.Frame(self.main_frame)
+            self.content_frame.pack(fill=tk.BOTH, expand=True, pady=0)
 
     def update_top_videos(self, event=None):
         """Update the top videos table based on the selected date."""
@@ -259,6 +341,9 @@ class TrendingPage:
         # Get data from database
         videos = self.data_manager.get_videos_by_date(selected_date)
         
+        # Store the current videos for search functionality
+        self._current_videos = []
+        
         # Insert data into tree
         for video in videos:
             formatted_row = (
@@ -272,6 +357,10 @@ class TrendingPage:
                 f"{video[7]}%"   # Finish Rate
             )
             self.tree.insert('', tk.END, values=formatted_row)
+            self._current_videos.append(formatted_row)
+        
+        # Clear the search bar
+        self.search_var.set("")
 
     def treeview_sort_column(self, col):
         """Sort tree contents when a column header is clicked."""
