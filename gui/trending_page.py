@@ -328,6 +328,27 @@ class TrendingPage:
             self.content_frame = ttk.Frame(self.main_frame)
             self.content_frame.pack(fill=tk.BOTH, expand=True, pady=0)
 
+    def format_video_data(self, video_data):
+        """
+        Format video data for display, converting None values to appropriate zero formats.
+        
+        Args:
+            video_data (tuple): Raw video data from database
+            
+        Returns:
+            tuple: Formatted video data for display
+        """
+        return (
+            video_data[0],  # Video ID (no formatting needed)
+            f"{video_data[1]:,}" if video_data[1] is not None else "0",  # Views
+            f"{video_data[2]:,}" if video_data[2] is not None else "0",  # Shares
+            f"{video_data[3]:,}" if video_data[3] is not None else "0",  # Comments
+            f"${video_data[4]:,.2f}" if video_data[4] is not None else "$0.00",  # GMV
+            f"{video_data[5]}%" if video_data[5] is not None else "0%",  # CTR
+            f"{video_data[6]}%" if video_data[6] is not None else "0%",  # CTOR
+            f"{video_data[7]}%" if video_data[7] is not None else "0%"   # Finish Rate
+    )
+
     def update_top_videos(self, event=None):
         """Update the top videos table based on the selected date."""
         selected_date = self.date_picker.get_date()
@@ -344,18 +365,9 @@ class TrendingPage:
         # Store the current videos for search functionality
         self._current_videos = []
         
-        # Insert data into tree
+        # Insert formatted data into tree
         for video in videos:
-            formatted_row = (
-                video[0],  # Video ID
-                f"{video[1]:,}",  # Views
-                f"{video[2]:,}",  # Shares
-                f"{video[3]:,}",  # Comments
-                f"${video[4]:,.2f}",  # GMV
-                f"{video[5]}%",  # CTR
-                f"{video[6]}%",  # CTOR
-                f"{video[7]}%"   # Finish Rate
-            )
+            formatted_row = self.format_video_data(video)
             self.tree.insert('', tk.END, values=formatted_row)
             self._current_videos.append(formatted_row)
         

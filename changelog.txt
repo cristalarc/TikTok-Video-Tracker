@@ -1,3 +1,14 @@
+[2024-11-13] Enhanced data display formatting for Trending Page
+
+- Enhanced data display formatting:
+  - Added format_video_data method to handle NULL value formatting
+  - Implemented consistent zero display for NULL numeric values
+  - Updated display formatting while preserving database values:
+    - Integer metrics (Views, Shares, Comments) show as "0"
+    - Currency metrics (GMV) show as "$0.00"
+    - Percentage metrics (CTR, CTOR, Finish Rate) show as "0%"
+  - Improved code organization by separating formatting logic
+
 [2024-11-12] Enhanced Trending Page UI and Layout
 
 - Improved Top Bar layout and organization:

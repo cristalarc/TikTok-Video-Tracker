@@ -1,5 +1,3 @@
-Need to handle the NULL values in the top videos section.
-
 Trending Section:
 Trending Section Descrtion:
 The Trending Section should display videos that are trending for a given day according to the following key metrics, Views, Shares, Comments, GMV, CTR, CTOR, Video Finish Rate.
@@ -39,6 +37,7 @@ Refactoring:
 Ancilliary
 
 - Add docstrings to all the functions.
+- Adopt code organization practices (organized methods?)
 - When I click on a section, like the video details section, that section expands so I an have a better view. Make this a setting.
 - Set threshold for video ingesting. Make this a setting.
 - Database cleanup. When an ingested video has had less than 4000 views for more than X time, stop ingesting video.
@@ -55,3 +54,4 @@ Ancilliary
     Implement for the process_single_file function.
 - Review database backup calls/generations. There may be too many.
 - Create a QA list for the app.
+- Create testing for the app. Some code that is able to test output versus what's in the database, or what's in the input files.
