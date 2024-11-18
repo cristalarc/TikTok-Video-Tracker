@@ -3,6 +3,7 @@ import tkinter as tk
 from tkcalendar import DateEntry
 from datetime import datetime
 from .context_menu import ContextMenuManager
+from processes.virality_calculator import ViralityCalculator
 import logging
 
 # logging configuration
@@ -20,6 +21,7 @@ class TrendingPage:
         self.master = master
         self.clear_page_callback = clear_page_callback
         self.data_manager = data_manager
+        self.virality_calculator = ViralityCalculator(self.data_manager)
         self.current_view = None
         self.notification_count = 0  # Track number of notifications
         
@@ -107,7 +109,7 @@ class TrendingPage:
         buttons = [
             ("Top Videos", self.show_top_videos),
             ("Outperforming Benchmark", self.show_outperforming),
-            ("Starting to Trend", self.show_starting_trend)
+            ("Trending Videos", self.show_trending_videos)
         ]
         
         for text, command in buttons:
@@ -232,26 +234,6 @@ class TrendingPage:
         ttk.Label(
             self.content_frame,
             text="Outperforming Benchmark (Under Construction)",
-            padding=20
-        ).pack(expand=True)
-
-    def show_starting_trend(self):
-        """Show the Starting to Trend view."""
-        self.clear_content_frame()
-        self.current_view = "starting_trend"
-        self.update_submenu_styling('starting_trend')
-        
-        # Create header label
-        self.header_label = ttk.Label(self.content_frame, style='Header.TLabel')
-        self.header_label.pack(fill=tk.X, pady=(5, 10))
-        
-        # Update header text
-        self.update_header("Videos Starting to Trend")
-        
-        # Add placeholder content
-        ttk.Label(
-            self.content_frame,
-            text="Starting to Trend (Under Construction)",
             padding=20
         ).pack(expand=True)
 
@@ -448,3 +430,76 @@ class TrendingPage:
                 text="Notification content will appear here",
                 padding=20
             ).pack(expand=True)
+
+# Trending Videos View
+
+    def create_trending_videos_content_frame(self):
+        """
+        Create the content frame where the trending videos will be displayed.
+        """
+        self.content_frame = ttk.Frame(self.master)
+        self.content_frame.pack(fill=tk.BOTH, expand=True)
+
+    def update_header(self, title):
+        """
+        Update the header with the given title.
+
+        Args:
+            title (str): Title text to display.
+        """
+        header_label = ttk.Label(self.content_frame, text=title, font=('Helvetica', 16))
+        header_label.pack(pady=10)
+
+    def show_trending_videos(self):
+        """
+        Display the trending videos using the virality calculator.
+        """
+        self.clear_content_frame()
+        self.create_trending_videos_content_frame()
+        self.update_header("Trending Videos")
+
+        # Retrieve trending videos
+        trending_videos_df = self.virality_calculator.get_trending_videos()
+
+        # If no trending videos are found, display a message
+        if trending_videos_df.empty:
+            tk.Label(self.content_frame, text="No trending videos found.").pack()
+            return
+
+        # Display the trending videos in a table
+        self.display_trending_videos(trending_videos_df)
+
+    def display_trending_videos(self, df):
+        """
+        Display the trending videos in a Treeview widget.
+
+        Args:
+            df (DataFrame): DataFrame containing trending videos.
+        """
+        # Define columns to display
+        columns = ('Video ID', 'Trending Score', 'Total Views', 'Daily Views', 'DGR (%)', 'ER (%)')
+
+        # Create Treeview
+        self.tree = ttk.Treeview(self.content_frame, columns=columns, show='headings')
+
+        # Set up column headings and formatting
+        for col in columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, anchor='center')
+
+        # Insert data into the Treeview
+        for _, row in df.iterrows():
+            self.tree.insert('', tk.END, values=(
+                row['video_id'],
+                f"{row['trending_score']:.2f}",
+                int(row['total_views']),
+                int(row['daily_views']),
+                f"{row['dgr']:.2f}",
+                f"{row['er']:.2f}"
+            ))
+
+        # Add vertical scrollbar
+        scrollbar = ttk.Scrollbar(self.content_frame, orient=tk.VERTICAL, command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.tree.pack(fill=tk.BOTH, expand=True)

@@ -6,6 +6,7 @@ __pycache__/
 *.db
 upload/
 db_backup/
+logic_repository/
 
 TikTok Video Tracker.code-workspace
 component_list.txt

@@ -1,4 +1,18 @@
 Trending Section:
+Slider for weights
+Establish Thresholds for Significance, as a setting
+Daily views needs to be taken from the last day for calculations
+Need to introduce a new table for the db that holds all the virality metrics.
+
+I need to introduce the concept of products, so that videos can be assigned to them and benchkmark metrics creation. Likely need new DB. Be able to introduce multiple product titles per product. Needs to callout when a video has been logged and no product title matched.
+
+
+Need to use the current data to try and determine which metrics have the highest correlation to trending, and assign weights to each metric.
+Starting to Trend:
+- Identify videos that are starting to trend. It should identify when a given video is starting to have a significant improvement in performance for any of the above key metrics. It should then display these outperforming videos in a separate table like UI.
+- We need a setting to put a Video View threshold for what is considered starting to trend. If a video is growing 100% but it's just 10 video views, that's not effective.
+- Need to be able to select videos for close tracking.
+
 Trending Section Descrtion:
 The Trending Section should display videos that are trending for a given day according to the following key metrics, Views, Shares, Comments, GMV, CTR, CTOR, Video Finish Rate.
 This section should allow you to input a date (by default is the latest date for which data has been inputted) and then show the performance of videos in a table like format but only showing the above metrics as well as the video ID.
@@ -6,7 +20,6 @@ This section should allow you to input a date (by default is the latest date for
 The Trending section should also have features that allow the following:
 
 - Calculate benchmark data for the key metrics above at a product level. Based on all the video data ingested, it should calculate benchmark values for each product and then identify videos that are outperforming the benchmkark. It should then display these outperforming videos in a separate table like UI.
-- Identify videos that are starting to trend. It should identify when a given video is starting to have a significant improvement in performance for any of the above key metrics. It should then display these outperforming videos in a separate table like UI.
 
 The Trending section should in total have three window views. One for the top videos of the selected date, one for the videos overperfoming benchmark, and one for the identified videos that are starting to trend.
 
@@ -18,6 +31,7 @@ The Trending section should in total have three window views. One for the top vi
     Include a description of every dashboard?
 
 Improvements:
+- Add a log. Need to have a log of certain events like adding data, deleting data, etc.
 -Dynamic Metric Handling: Consider allowing multiple metrics to be plotted simultaneously, not just two.
 -Interactive Plots: Explore adding interactive features like zooming or hovering to see data values using libraries like mplcursors (already used in your code).
 -Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
