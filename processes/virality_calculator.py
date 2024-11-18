@@ -1,5 +1,9 @@
 import pandas as pd
 import numpy as np
+import logging
+
+# logging configuration
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class ViralityCalculator:
     def __init__(self, data_manager):
@@ -128,6 +132,46 @@ class ViralityCalculator:
             df['norm_er'] * weights['norm_er']
         )
         return df
+    
+    def store_calculated_metrics(self, df):
+        """
+        Store calculated metrics in the database.
+
+        Args:
+            df (DataFrame): DataFrame containing calculated metrics
+        """
+        try:
+            # Group by video_id to get latest metrics for videos table
+            latest_metrics = df.sort_values('performance_date').groupby('video_id').last()
+            
+            # Update metrics for each video
+            for video_id, row in latest_metrics.iterrows():
+                video_metrics = {
+                    'dgr': row['dgr'],
+                    'egr': row['egr'],
+                    'trending_score': row['trending_score'],
+                    'momentum': row['momentum']
+                }
+                self.data_manager.update_video_metrics(video_id, video_metrics)
+            
+            # Update daily_performance table
+            for _, row in df.iterrows():
+                daily_metrics = {
+                    'dgr': row['dgr'],
+                    'er': row['er'],
+                    'egr': row['egr'],
+                    'trending_score': row['trending_score'],
+                    'momentum': row['momentum']
+                }
+                self.data_manager.update_daily_metrics(
+                    row['video_id'],
+                    row['performance_date'].strftime('%Y-%m-%d'),
+                    daily_metrics
+                )
+                
+        except Exception as e:
+            logging.error(f"Error storing calculated metrics: {str(e)}")
+            raise
 
     def identify_trending_videos(self, df, ts_threshold=0.7):
         """
@@ -160,6 +204,8 @@ class ViralityCalculator:
         df = self.calculate_metrics(df)
         df = self.normalize_metrics(df)
         df = self.calculate_trending_score(df)
+        # Store the calculated metrics in the database
+        self.store_calculated_metrics(df)
         trending_videos = self.identify_trending_videos(df, ts_threshold)
         # Keep latest entry per video
         trending_videos = trending_videos.sort_values('performance_date').groupby('video_id').tail(1)

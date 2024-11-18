@@ -554,3 +554,63 @@ class DataManager:
         except sqlite3.Error as e:
             logging.error(f"Database error: {e}")
             return []
+        
+    # Virality metrics
+    def update_daily_metrics(self, video_id, performance_date, metrics):
+        """
+        Update daily performance metrics for a video.
+
+        Args:
+            video_id (str): The video ID
+            performance_date (str): The date of performance
+            metrics (dict): Dictionary containing the metrics to update
+        """
+        try:
+            cursor = self.conn.cursor()
+            
+            # Construct the UPDATE query dynamically based on provided metrics
+            set_clause = ", ".join([f"{key} = ?" for key in metrics.keys()])
+            values = list(metrics.values())
+            values.extend([video_id, performance_date])  # Add WHERE clause parameters
+            
+            query = f"""
+                UPDATE daily_performance 
+                SET {set_clause}
+                WHERE video_id = ? AND performance_date = ?
+            """
+            
+            cursor.execute(query, values)
+            self.conn.commit()
+            
+        except sqlite3.Error as e:
+            logging.error(f"Error updating daily metrics: {str(e)}")
+            raise
+
+    def update_video_metrics(self, video_id, metrics):
+        """
+        Update video metrics in the videos table.
+
+        Args:
+            video_id (str): The video ID
+            metrics (dict): Dictionary containing the metrics to update
+        """
+        try:
+            cursor = self.conn.cursor()
+            
+            # Construct the UPDATE query dynamically based on provided metrics
+            set_clause = ", ".join([f"{key} = ?" for key in metrics.keys()])
+            values = list(metrics.values())
+            values.append(video_id)  # Add WHERE clause parameter
+            
+            query = f"""
+                UPDATE videos 
+                SET {set_clause}
+                WHERE video_id = ?
+            """
+            
+            cursor.execute(query, values)
+            self.conn.commit()
+            
+        except sqlite3.Error as e:
+            logging.error(f"Error updating video metrics: {str(e)}")
+            raise

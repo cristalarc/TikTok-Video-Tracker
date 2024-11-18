@@ -1,7 +1,22 @@
+Add database backup before running Trending Score calculations.
+
+The virality metrics will be stored in the daily_performance table, calculated and stored on a daily basis so that they can be plotable.
+The latest score will be updated to the videos table.
+
+Need to update the plotable metrics to include new metrics.
+
+Make get_trending_videos ts_threshold a setting.
+
+Virality calculator still is the file that performs these calculations and updates the db.
+
+Data Manager will receive the data from the virality calculator and then insert or update the records in the database.
+
 Trending Section:
 Slider for weights
 Establish Thresholds for Significance, as a setting
+
 Daily views needs to be taken from the last day for calculations
+
 Need to introduce a new table for the db that holds all the virality metrics.
 
 I need to introduce the concept of products, so that videos can be assigned to them and benchkmark metrics creation. Likely need new DB. Be able to introduce multiple product titles per product. Needs to callout when a video has been logged and no product title matched.
@@ -23,19 +38,21 @@ The Trending section should also have features that allow the following:
 
 The Trending section should in total have three window views. One for the top videos of the selected date, one for the videos overperfoming benchmark, and one for the identified videos that are starting to trend.
 
-- Add a function that detects when videos are growing in views and send a notification to the user.
 - Add a function that helps product performance and then show videos that are ourperforming for that product.
 - I want the UI to be adaptive of my PC resolution?
 - Add a Help menu with a link to the readme.
     Include a glossary of metrics.
     Include a description of every dashboard?
 
+Bugs:
+- When I click on a video in the trending section, it doesn't show the video details. Also, when clicking back to Top videos, the screen is not cleared.
+
 Improvements:
 - Add a log. Need to have a log of certain events like adding data, deleting data, etc.
 -Dynamic Metric Handling: Consider allowing multiple metrics to be plotted simultaneously, not just two.
 -Interactive Plots: Explore adding interactive features like zooming or hovering to see data values using libraries like mplcursors (already used in your code).
 -Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
-
+- Implement unit testing for calculations.
 
 To Test:
     Monthly aggregation plotting.

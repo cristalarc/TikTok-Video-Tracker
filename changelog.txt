@@ -1,4 +1,36 @@
-[2024-11-14] Implemented Virality Detection Algorithm and Enhanced Trending Page
+[2024-11-18] Enhanced Database Schema and Implemented Metric Storage
+
+- Added new columns to database tables for virality metrics:
+  - Updated daily_performance table with new columns:
+    - Daily Growth Rate (DGR)
+    - Engagement Rate (ER)
+    - Engagement Growth Rate (EGR)
+    - Trending Score
+    - Momentum
+  - Enhanced videos table with new columns:
+    - Daily Growth Rate (DGR)
+    - Engagement Growth Rate (EGR)
+    - Trending Score
+    - Momentum
+
+- Created new DatabaseMigration class for safe schema updates:
+  - Implemented transaction-based migration process
+  - Added column existence checking to prevent duplicate additions
+  - Included comprehensive error handling and logging
+  - Created automatic migration process during application startup
+
+- Enhanced DataManager with new metric update methods:
+  - Added update_daily_metrics method for daily performance updates
+  - Implemented update_video_metrics for video-level metric updates
+  - Created dynamic query construction for flexible metric updates
+  - Added error handling for database operations
+
+- Updated ViralityCalculator to persist calculated metrics:
+  - Added store_calculated_metrics method to save computations
+  - Implemented automatic metric storage in get_trending_videos pipeline
+  - Enhanced error handling for metric storage operations
+
+[2024-11-17] Implemented Virality Detection Algorithm and Enhanced Trending Page
 
 - Created new ViralityCalculator class to handle trending video detection:
   - Implemented comprehensive virality detection algorithm using multiple metrics:
