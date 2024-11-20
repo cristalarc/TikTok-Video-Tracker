@@ -1,5 +1,3 @@
-Add database backup before running Trending Score calculations.
-
 The virality metrics will be stored in the daily_performance table, calculated and stored on a daily basis so that they can be plotable.
 The latest score will be updated to the videos table.
 
@@ -56,14 +54,14 @@ Improvements:
 
 To Test:
     Monthly aggregation plotting.
-    There's a warning when plotting dual metrics.
-        UserWarning: Selection.target.index is deprecated and will be removed in the future; use Selection.index instead.
-When clearing performance, the Last Performance Data is not being updated.
+    When clearing performance, the Last Performance Data is not being updated.
 
 Refactoring:
 - Does it make sense to ingest data as strings and then convert to floats?
 - There's a warning when ingesting excel files.
 - Consolidate library imports.
+- There's a warning when plotting dual metrics.
+    UserWarning: Selection.target.index is deprecated and will be removed in the future; use Selection.index instead.
 
 Ancilliary
 

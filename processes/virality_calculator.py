@@ -141,33 +141,50 @@ class ViralityCalculator:
             df (DataFrame): DataFrame containing calculated metrics
         """
         try:
-            # Group by video_id to get latest metrics for videos table
-            latest_metrics = df.sort_values('performance_date').groupby('video_id').last()
+            # Create backup before storing new metrics
+            self.data_manager.backup_database()
+            logging.info("Database backup created before storing new metrics")
             
-            # Update metrics for each video
-            for video_id, row in latest_metrics.iterrows():
-                video_metrics = {
-                    'dgr': row['dgr'],
-                    'egr': row['egr'],
-                    'trending_score': row['trending_score'],
-                    'momentum': row['momentum']
-                }
-                self.data_manager.update_video_metrics(video_id, video_metrics)
+            # Start a transaction
+            self.data_manager.conn.execute('BEGIN TRANSACTION')
             
-            # Update daily_performance table
-            for _, row in df.iterrows():
-                daily_metrics = {
-                    'dgr': row['dgr'],
-                    'er': row['er'],
-                    'egr': row['egr'],
-                    'trending_score': row['trending_score'],
-                    'momentum': row['momentum']
-                }
-                self.data_manager.update_daily_metrics(
-                    row['video_id'],
-                    row['performance_date'].strftime('%Y-%m-%d'),
-                    daily_metrics
-                )
+            try:
+                # Group by video_id to get latest metrics for videos table
+                latest_metrics = df.sort_values('performance_date').groupby('video_id').last()
+                
+                # Update metrics for each video
+                for video_id, row in latest_metrics.iterrows():
+                    video_metrics = {
+                        'dgr': float(row['dgr']),
+                        'egr': float(row['egr']),
+                        'trending_score': float(row['trending_score']),
+                        'momentum': float(row['momentum'])
+                    }
+                    self.data_manager.update_video_metrics(video_id, video_metrics)
+                
+                # Update daily_performance table
+                for _, row in df.iterrows():
+                    daily_metrics = {
+                        'dgr': float(row['dgr']),
+                        'er': float(row['er']),
+                        'egr': float(row['egr']),
+                        'trending_score': float(row['trending_score']),
+                        'momentum': float(row['momentum'])
+                    }
+                    self.data_manager.update_daily_metrics(
+                        row['video_id'],
+                        row['performance_date'].strftime('%Y-%m-%d'),
+                        daily_metrics
+                    )
+                
+                # Commit the transaction
+                self.data_manager.conn.commit()
+                logging.info("Successfully stored calculated metrics in database")
+                
+            except Exception as e:
+                # Rollback the transaction if there's an error
+                self.data_manager.conn.rollback()
+                raise e
                 
         except Exception as e:
             logging.error(f"Error storing calculated metrics: {str(e)}")
