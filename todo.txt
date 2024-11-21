@@ -1,4 +1,4 @@
-The virality metrics will be stored in the daily_performance table, calculated and stored on a daily basis so that they can be plotable.
+The virality metrics will be stored in the daily_performance table, calculated and stored on a daily basis so that they can be plotable.  First finish this, it is currently not working and doing full calculation of the database, we will have to change this so that it is done with every upload.
 The latest score will be updated to the videos table.
 
 Need to update the plotable metrics to include new metrics.
@@ -44,6 +44,7 @@ The Trending section should in total have three window views. One for the top vi
 
 Bugs:
 - When I click on a video in the trending section, it doesn't show the video details. Also, when clicking back to Top videos, the screen is not cleared.
+-When clearing performance, the Last Performance Date is not being updated.
 
 Improvements:
 - Add a log. Need to have a log of certain events like adding data, deleting data, etc.
@@ -51,10 +52,11 @@ Improvements:
 -Interactive Plots: Explore adding interactive features like zooming or hovering to see data values using libraries like mplcursors (already used in your code).
 -Data Normalization: When plotting metrics with vastly different scales, consider normalizing or scaling the data to make the plot more informative.
 - Implement unit testing for calculations.
+- Make the main video dashboard fetch the total metrics from the video table instead of calculating it every time.
 
 To Test:
     Monthly aggregation plotting.
-    When clearing performance, the Last Performance Data is not being updated.
+    
 
 Refactoring:
 - Does it make sense to ingest data as strings and then convert to floats?

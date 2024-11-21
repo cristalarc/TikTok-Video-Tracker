@@ -1,3 +1,28 @@
+[2024-11-20] Enhanced Database Schema with Total Metrics and Improved Data Management
+
+- Added column name mapping system to handle TikTok export file changes:
+  - Implemented flexible mapping between "Buyers" and "Customers" columns as TikTok changed the column name in the export file
+  - Added column_mapping dictionary to DataManager for future column name changes
+  - Enhanced insert_or_update_records to handle both column names
+  - Maintained backward compatibility with historical data
+
+- Added new total metrics columns to videos table:
+  - total_vv (Total Video Views)
+  - total_likes (Total Likes)
+  - total_shares (Total Shares)
+  - total_video_revenue (Total Video Revenue)
+
+- Enhanced DataManager with automatic total metrics updates:
+  - Added update_video_totals method to calculate and store total metrics
+  - Modified insert_or_update_records to automatically update totals after daily performance updates
+  - Implemented transaction-based updates to ensure data consistency
+  - Added error handling and logging for total metrics operations
+
+- Improved database backup functionality:
+  - Added automatic backup before schema changes
+  - Integrated backup creation with existing FileHandler functionality
+  - Enhanced error handling and logging for backup operations
+
 [2024-11-18] Enhanced Database Schema and Implemented Metric Storage
 
 - Added new columns to database tables for virality metrics:

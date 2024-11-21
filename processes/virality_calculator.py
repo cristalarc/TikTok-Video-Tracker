@@ -56,36 +56,44 @@ class ViralityCalculator:
 
     def calculate_metrics(self, df):
         """
-        Calculate required metrics such as Total Views, DGR, and ER.
-
-        Args:
-            df (DataFrame): DataFrame containing daily video metrics.
-
-        Returns:
-            DataFrame: DataFrame with additional calculated metrics.
+        Calculate all required metrics for trending detection.
         """
-        # Sort values to ensure correct calculations
-        df = df.sort_values(['video_id', 'performance_date'])
-
-        # Calculate Total Views (TV) per video over time
-        df['total_views'] = df.groupby('video_id')['daily_views'].cumsum()
-
-        # Calculate previous day's views for DGR computation
-        df['prev_daily_views'] = df.groupby('video_id')['daily_views'].shift(1).fillna(0)
-        epsilon = 1e-6  # Small constant to prevent division by zero
-
-        # Calculate Daily Growth Rate (DGR)
-        df['dgr'] = ((df['daily_views'] - df['prev_daily_views']) / (df['prev_daily_views'] + epsilon)) * 100
-
-        # Calculate Total Engagements per day
-        df['daily_engagements'] = df['likes'] + df['comments'] + df['shares']
-        df['total_engagements'] = df.groupby('video_id')['daily_engagements'].cumsum()
-
-        # Calculate Engagement Rate (ER)
-        df['er'] = (df['total_engagements'] / df['total_views']) * 100
-        df['er'] = df['er'].replace([np.inf, -np.inf], 0).fillna(0)  # Handle infinite and NaN values
-
-        return df
+        try:
+            # Sort DataFrame by video_id and date for accurate calculations
+            df = df.sort_values(['video_id', 'performance_date'])
+            
+            # Calculate Daily Growth Rate (DGR)
+            df['previous_daily_views'] = df.groupby('video_id')['daily_views'].shift(1)
+            epsilon = 1e-6  # Small constant to avoid division by zero
+            df['dgr'] = ((df['daily_views'] - df['previous_daily_views']) / 
+                        (df['previous_daily_views'] + epsilon)) * 100
+            
+            # Calculate Engagement Rate (ER)
+            df['total_engagements'] = df['likes'] + df['comments'] + df['shares']
+            df['er'] = (df['total_engagements'] / (df['daily_views'] + epsilon)) * 100
+            
+            # Calculate Engagement Growth Rate (EGR)
+            df['previous_engagements'] = df.groupby('video_id')['total_engagements'].shift(1)
+            df['egr'] = ((df['total_engagements'] - df['previous_engagements']) / 
+                        (df['previous_engagements'] + epsilon)) * 100
+            
+            # Calculate Momentum (e.g., 3-day moving average of DGR)
+            df['momentum'] = df.groupby('video_id')['dgr'].rolling(window=3, min_periods=1).mean().reset_index(0, drop=True)
+            
+            # Fill NaN values with 0
+            df = df.fillna(0)
+            
+            # Ensure all metrics are present
+            required_metrics = ['dgr', 'er', 'egr', 'momentum']
+            for metric in required_metrics:
+                if metric not in df.columns:
+                    raise ValueError(f"Required metric '{metric}' is missing after calculation")
+            
+            return df
+            
+        except Exception as e:
+            logging.error(f"Error calculating metrics: {str(e)}")
+            raise
 
     def normalize_metrics(self, df):
         """
@@ -136,11 +144,14 @@ class ViralityCalculator:
     def store_calculated_metrics(self, df):
         """
         Store calculated metrics in the database.
-
-        Args:
-            df (DataFrame): DataFrame containing calculated metrics
         """
         try:
+            # Verify all required columns exist
+            required_columns = ['dgr', 'er', 'egr', 'momentum', 'trending_score']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            if missing_columns:
+                raise ValueError(f"Missing required columns: {missing_columns}")
+
             # Create backup before storing new metrics
             self.data_manager.backup_database()
             logging.info("Database backup created before storing new metrics")
@@ -152,7 +163,7 @@ class ViralityCalculator:
                 # Group by video_id to get latest metrics for videos table
                 latest_metrics = df.sort_values('performance_date').groupby('video_id').last()
                 
-                # Update metrics for each video
+                # Update metrics for each video in the video table
                 for video_id, row in latest_metrics.iterrows():
                     video_metrics = {
                         'dgr': float(row['dgr']),
@@ -160,7 +171,7 @@ class ViralityCalculator:
                         'trending_score': float(row['trending_score']),
                         'momentum': float(row['momentum'])
                     }
-                    self.data_manager.update_video_metrics(video_id, video_metrics)
+                    self.data_manager.update_video_table_virality_metrics(video_id, video_metrics)
                 
                 # Update daily_performance table
                 for _, row in df.iterrows():
@@ -171,7 +182,7 @@ class ViralityCalculator:
                         'trending_score': float(row['trending_score']),
                         'momentum': float(row['momentum'])
                     }
-                    self.data_manager.update_daily_metrics(
+                    self.data_manager.update_daily_table_virality_metrics(
                         row['video_id'],
                         row['performance_date'].strftime('%Y-%m-%d'),
                         daily_metrics
@@ -184,10 +195,11 @@ class ViralityCalculator:
             except Exception as e:
                 # Rollback the transaction if there's an error
                 self.data_manager.conn.rollback()
-                raise e
+                logging.error(f"Error during metric storage transaction: {str(e)}")
+                raise
                 
         except Exception as e:
-            logging.error(f"Error storing calculated metrics: {str(e)}")
+            logging.error(f"Error in store_calculated_metrics: {str(e)}")
             raise
 
     def identify_trending_videos(self, df, ts_threshold=0.7):

@@ -22,6 +22,11 @@ class DataManager:
         self.create_tables()
         self.migrate_database()
         self.load_settings() # Load all settings
+        # Add column mapping dictionary. Needed to address changes in the TikTok export file.
+        self.column_mapping = {
+            'Buyers': 'customers',  # Old name to new database column
+            'Customers': 'customers',  # New name to new database column
+        }
 
     def load_settings(self):
         try:
@@ -77,7 +82,16 @@ class DataManager:
                 video_info TEXT,
                 time TEXT,
                 creator_name TEXT,
-                products TEXT
+                products TEXT,
+                dgr REAL DEFAULT 0,
+                er REAL DEFAULT 0,
+                egr REAL DEFAULT 0,
+                trending_score REAL DEFAULT 0,
+                momentum REAL DEFAULT 0,
+                total_vv INTEGER DEFAULT 0,
+                total_likes INTEGER DEFAULT 0,
+                total_shares INTEGER DEFAULT 0,
+                total_video_revenue REAL DEFAULT 0
             )
         ''')
         cursor.execute('''
@@ -92,7 +106,7 @@ class DataManager:
                 v_to_l_clicks INTEGER,
                 product_impressions INTEGER,
                 product_clicks INTEGER,
-                buyers INTEGER,
+                customers INTEGER,
                 orders INTEGER,
                 unit_sales INTEGER,
                 video_revenue REAL,
@@ -102,6 +116,11 @@ class DataManager:
                 v_to_l_rate REAL,
                 video_finish_rate REAL,
                 ctor REAL,
+                dgr REAL,
+                er REAL,
+                egr REAL,
+                trending_score REAL,
+                momentum REAL,
                 PRIMARY KEY (video_id, performance_date),
                 FOREIGN KEY (video_id) REFERENCES videos(video_id)
             )
@@ -187,6 +206,11 @@ class DataManager:
             # Clean the percentage fields
             df = self.clean_percentage_fields(df)
 
+            # Map column names if they exist
+            buyers_column = next((col for col in ['Customers', 'Buyers'] if col in df.columns), None)
+            if not buyers_column:
+                raise ValueError("Neither 'Customers' nor 'Buyers' column found in the data")
+
             for _, row in df.iterrows():
                 # Check if the video already exists
                 cursor.execute("SELECT 1 FROM videos WHERE video_id = ?", (row['Video ID'],))
@@ -200,30 +224,33 @@ class DataManager:
                         WHERE video_id = ?
                     ''', (row['Video Info'], row['Time'], row['Creator name'], row['Products'], row['Video ID']))
                 else:
-                    # Insert new video only if VV >= 4000
+                    # Insert new video only if VV >= Settings VV threshold
                     if row['VV'] >= self.vv_threshold:
                         cursor.execute('''
                             INSERT INTO videos (video_id, video_info, time, creator_name, products)
                             VALUES (?, ?, ?, ?, ?)
                         ''', (row['Video ID'], row['Video Info'], row['Time'], row['Creator name'], row['Products']))
                     else:
-                        continue  # Skip this video if it's new and has less than 4000 VV
+                        continue  # Skip this video if it's new and has less than Settings VV threshold
 
                 # Always insert or update daily performance for existing videos
                 if video_exists or row['VV'] >= self.vv_threshold:
                     cursor.execute('''
                         INSERT OR REPLACE INTO daily_performance 
                         (video_id, performance_date, vv, likes, comments, shares, new_followers, 
-                        v_to_l_clicks, product_impressions, product_clicks, buyers, orders, 
+                        v_to_l_clicks, product_impressions, product_clicks, customers, orders, 
                         unit_sales, video_revenue, gpm, shoppable_video_attributed_gmv, ctr, 
                         v_to_l_rate, video_finish_rate, ctor)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ''', (row['Video ID'], row['performance_date'], row['VV'], row['Likes'], 
                           row['Comments'], row['Shares'], row['New followers'], row['V-to-L clicks'],
-                          row['Product Impressions'], row['Product Clicks'], row['Buyers'], 
+                          row['Product Impressions'], row['Product Clicks'], row[buyers_column], 
                           row['Orders'], row['Unit Sales'], row['Video Revenue ($)'], 
                           row['GPM ($)'], row['Shoppable video attributed GMV ($)'], 
                           row['CTR'], row['V-to-L rate'], row['Video Finish Rate'], row['CTOR']))
+                    
+                    # Update the video totals metrics in the videos table after inserting/updating daily performance
+                    self.update_video_table_totals(row['Video ID'])
 
             self.conn.commit()
             logging.info(f"Successfully inserted or updated {len(df)} records")
@@ -556,9 +583,9 @@ class DataManager:
             return []
         
     # Virality metrics
-    def update_daily_metrics(self, video_id, performance_date, metrics):
+    def update_daily_table_virality_metrics(self, video_id, performance_date, metrics):
         """
-        Update daily performance metrics for a video.
+        Update daily performance virality metrics for a video in the daily_performance table.
 
         Args:
             video_id (str): The video ID
@@ -586,9 +613,9 @@ class DataManager:
             logging.error(f"Error updating daily metrics: {str(e)}")
             raise
 
-    def update_video_metrics(self, video_id, metrics):
+    def update_video_table_virality_metrics(self, video_id, metrics):
         """
-        Update video metrics in the videos table.
+        Update video virality metrics in the videos table.
 
         Args:
             video_id (str): The video ID
@@ -613,4 +640,48 @@ class DataManager:
             
         except sqlite3.Error as e:
             logging.error(f"Error updating video metrics: {str(e)}")
+            raise
+
+    def update_video_table_totals(self, video_id):
+        """
+        Update total metrics for a specific video.
+        
+        Args:
+            video_id (str): The video ID to update totals for
+        """
+        try:
+            cursor = self.conn.cursor()
+            
+            update_query = """
+            UPDATE videos
+            SET 
+                total_vv = (
+                    SELECT SUM(vv)
+                    FROM daily_performance
+                    WHERE video_id = ?
+                ),
+                total_likes = (
+                    SELECT SUM(likes)
+                    FROM daily_performance
+                    WHERE video_id = ?
+                ),
+                total_shares = (
+                    SELECT SUM(shares)
+                    FROM daily_performance
+                    WHERE daily_performance.video_id = videos.video_id
+                ),
+                total_video_revenue = (
+                    SELECT SUM(video_revenue)
+                    FROM daily_performance
+                    WHERE video_id = ?
+                )
+            WHERE video_id = ?
+            """
+            
+            cursor.execute(update_query, (video_id, video_id, video_id, video_id))
+            self.conn.commit()
+            logging.info(f"Updated total metrics for video {video_id}")
+            
+        except sqlite3.Error as e:
+            logging.error(f"Error updating video totals: {str(e)}")
             raise
