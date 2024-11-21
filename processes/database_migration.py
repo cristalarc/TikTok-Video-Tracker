@@ -21,6 +21,18 @@ class DatabaseMigration:
             # Start transaction
             self.conn.execute('BEGIN TRANSACTION')
 
+            # Add columns to daily_performance table
+            daily_performance_columns = [
+                ('dgr', 'REAL DEFAULT 0'),
+                ('er', 'REAL DEFAULT 0'),
+                ('egr', 'REAL DEFAULT 0'),
+                ('trending_score', 'REAL DEFAULT 0'),
+                ('momentum', 'REAL DEFAULT 0')
+            ]
+
+            for column_name, data_type in daily_performance_columns:
+                self._add_column_if_not_exists('daily_performance', column_name, data_type)
+
             # Add columns to videos table
             videos_columns = [
                 # New total metrics columns
@@ -157,7 +169,7 @@ def run_migration():
     """Execute the database migration."""
     migration = DatabaseMigration()
     # migration.add_new_columns()
-    migration.migrate_database()
+    # migration.migrate_database()
 
 if __name__ == "__main__":
     run_migration()

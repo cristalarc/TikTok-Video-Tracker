@@ -1,3 +1,7 @@
+The virality metrics need to be calculated at the end of the upload, once all the data has been ingested. Then, if the latest date is greater than the last date for which virality metrics have been calculated for a particular video, then the data is duplicated to the videos table.
+
+There also needs to be logic for when the video does not have a prior day data.
+
 The virality metrics will be stored in the daily_performance table, calculated and stored on a daily basis so that they can be plotable.  First finish this, it is currently not working and doing full calculation of the database, we will have to change this so that it is done with every upload.
 The latest score will be updated to the videos table.
 
